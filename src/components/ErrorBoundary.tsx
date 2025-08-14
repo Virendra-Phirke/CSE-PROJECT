@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -25,9 +26,12 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-dark-bg-primary flex items-center justify-center p-4">
           <div className="card p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold text-red-600 mb-4">Something went wrong</h2>
+            <div className="flex items-center mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-500 mr-2" />
+              <h2 className="text-xl font-bold text-red-600">Something went wrong</h2>
+            </div>
             <p className="text-gray-600 dark:text-dark-text-secondary mb-4">
               An error occurred while loading the application.
             </p>

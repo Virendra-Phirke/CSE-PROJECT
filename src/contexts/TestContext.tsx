@@ -94,6 +94,13 @@ export function TestProvider({ children }: { children: React.ReactNode }) {
   const createTest = async (testData: Omit<LegacyTest, 'id'>) => {
     if (!user) return;
 
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      console.error('Supabase not configured properly');
+      alert('Database not configured. Please set up Supabase connection.');
+      return;
+    }
+
     try {
       const userRole = (user.unsafeMetadata?.role as string) || 'teacher';
       await ensureUserProfile(user, userRole as 'teacher' | 'student');
@@ -134,6 +141,7 @@ export function TestProvider({ children }: { children: React.ReactNode }) {
       await refreshTests();
     } catch (error) {
       console.error('Error creating test:', error);
+      alert('Failed to create test. Please check your database connection.');
       throw error;
     }
   };

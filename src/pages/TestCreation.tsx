@@ -116,6 +116,12 @@ function TestCreation() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if Supabase is configured
+    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+      alert('Database not configured. Please connect to Supabase first.');
+      return;
+    }
+
     // Validate form
     if (!testData.title || questions.some((q: LegacyQuestion) => !q.question || q.options.some((opt: string) => !opt))) {
       alert('Please fill in all fields');
@@ -140,9 +146,9 @@ function TestCreation() {
       const errorCode = (error as { code?: string })?.code;
       
       if (errorMessage.includes('Permission denied') || errorCode === '42501') {
-        alert('Unable to create test due to database permissions. This is likely a configuration issue. Please try again or contact support.');
+        alert('Unable to create test. Please ensure you are connected to Supabase and try again.');
       } else {
-        alert('Failed to create test. Please check your connection and try again.');
+        alert('Failed to create test. Please check your database connection and try again.');
       }
     } finally {
       setLoading(false);

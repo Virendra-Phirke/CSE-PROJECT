@@ -20,7 +20,7 @@ function LoginPage() {
       if (returnTo) {
         return <Navigate to={returnTo} replace />;
       }
-      return <Navigate to="/dashboard" />;
+      return <Navigate to={userRole === 'teacher' ? '/teacher' : '/student'} replace />;
     } else {
       // Pass along the return URL to role setup
       return <Navigate to="/setup-role" state={{ returnTo }} />;

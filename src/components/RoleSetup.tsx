@@ -30,7 +30,8 @@ function RoleSetup() {
       if (returnTo) {
         navigate(returnTo, { replace: true });
       } else {
-        navigate('/dashboard');
+        const dashboardPath = role === 'teacher' ? '/teacher' : '/student';
+        navigate(dashboardPath, { replace: true });
       }
     } catch (error) {
       console.error('Error setting role:', error);

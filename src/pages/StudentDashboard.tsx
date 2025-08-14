@@ -8,6 +8,7 @@ import { BookOpen, Clock, CheckCircle, TrendingUp, Award, Moon, Sun } from 'luci
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
 import { Skeleton, CardSkeleton } from '../components/Skeleton';
 import { useTestsQuery, useResultsQuery } from '../hooks/quizQueries';
+import { DatabaseStatus } from '../components/DatabaseStatus';
 
 function StudentDashboard() {
   const { user } = useUser();
@@ -126,6 +127,11 @@ function StudentDashboard() {
               </SignInButton>
             </SignedOut>
           </div>
+        </div>
+
+        {/* Database Status */}
+        <div className="mb-6">
+          <DatabaseStatus />
         </div>
 
         {/* Statistics Cards */}

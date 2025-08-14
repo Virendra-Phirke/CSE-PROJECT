@@ -8,7 +8,7 @@ import { CheckCircle, AlertCircle, BookOpen, Users } from 'lucide-react';
 import { ModernAuthCard } from '../components/ModernAuthCard';
 import { Skeleton } from '../components/Skeleton';
 import { useLoading } from '../hooks/useLoading';
-import { fireConfetti } from '../components/Confetti';
+import confetti from 'canvas-confetti';
 
 // Auto-submit safeguard configuration
 const AUTO_SUBMIT_CONFIG = {
@@ -227,7 +227,12 @@ function TakeTest() {
     setSubmitting(true);
     try {
       await submitTestResultServer({ testId: test.id, answers });
-      fireConfetti();
+      // Fire confetti on successful submission
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
       navigate(`/results/${testId}`);
     } catch (error: unknown) {
       console.error('Error submitting test (server RPC):', error);

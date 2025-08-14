@@ -8,6 +8,7 @@ import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
 import { useQuestionStatsQuery } from '../hooks/quizQueries';
 import { useDeleteTestMutation, useToggleTestStatusMutation } from '../hooks/quizMutations';
 import { useTheme } from '../hooks/useTheme';
+import { DatabaseStatus } from '../components/DatabaseStatus';
 
 function TeacherDashboard() {
   const { user } = useUser();
@@ -143,6 +144,11 @@ function TeacherDashboard() {
             </button>
             <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonPopoverCard: 'bg-[#111827] border border-white/10 backdrop-blur-xl' } }} />
           </div>
+        </div>
+        {toast && (
+        {/* Database Status */}
+        <div className="mb-6">
+          <DatabaseStatus />
         </div>
         {toast && (
           <div

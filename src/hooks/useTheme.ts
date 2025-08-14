@@ -4,7 +4,16 @@ import { ThemeContext } from '../contexts/ThemeContext';
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
+    // Provide fallback values instead of throwing
+    return {
+      isDark: false,
+      toggleTheme: () => {},
+      setTheme: () => {},
+      accent: 'purple-pink',
+      accentColor: 'purple-pink',
+      cycleAccent: () => {},
+      setAccent: () => {}
+    };
   }
   return context;
 }
