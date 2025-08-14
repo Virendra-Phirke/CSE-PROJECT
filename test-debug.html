@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Test Link Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+        }
+        .success {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #060;
+        }
+        .info {
+            background: #eef;
+            border: 1px solid #ccf;
+            color: #006;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a8b;
+        }
+        .disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 MCQ Portal - Shared Test Link Debug Tool</h1>
+        <p>This tool helps debug shared test link access issues. Follow these steps:</p>
+    </div>
+
+    <div class="card">
+        <h2>📋 Steps to Test Shared Test Links</h2>
+        <ol>
+            <li><strong>Login as Teacher:</strong> Go to <a href="http://localhost:5173" target="_blank">localhost:5173</a> and login as a teacher</li>
+            <li><strong>Create a Test:</strong> Create a new test/quiz from the teacher dashboard</li>
+            <li><strong>Generate Share Link:</strong> Use the "Share" button to generate a test link</li>
+            <li><strong>Test as Student:</strong> Open the share link in an incognito window or different browser</li>
+            <li><strong>Login as Student:</strong> Login with a different account (student role)</li>
+            <li><strong>Take the Test:</strong> Try to take the test and submit results</li>
+        </ol>
+    </div>
+
+    <div class="card info">
+        <h2>🔍 Common Issues & Solutions</h2>
+        <h3>Issue 1: "Test not found"</h3>
+        <ul>
+            <li>Check if the test ID in the URL is correct</li>
+            <li>Verify the test exists in the database</li>
+            <li>Check if the test is marked as active</li>
+        </ul>
+
+        <h3>Issue 2: "User profile error"</h3>
+        <ul>
+            <li>Student profile not created in database</li>
+            <li>UUID generation or caching issues</li>
+            <li>Database foreign key constraints</li>
+        </ul>
+
+        <h3>Issue 3: "Cannot submit test results"</h3>
+        <ul>
+            <li>Database permissions (RLS disabled?)</li>
+            <li>Foreign key constraint violations</li>
+            <li>Student ID UUID issues</li>
+        </ul>
+
+        <h3>Issue 4: "Authentication errors"</h3>
+        <ul>
+            <li>Clerk configuration issues</li>
+            <li>Missing environment variables</li>
+            <li>Role setup problems</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🛠️ Debug Actions</h2>
+        <button onclick="openMainApp()">Open Main App</button>
+        <button onclick="openIncognito()">Open Incognito Window</button>
+        <button onclick="checkConsole()">Check Browser Console</button>
+        <button onclick="copyTestLink()">Copy Example Test Link</button>
+    </div>
+
+    <div class="card">
+        <h2>📊 Database Status</h2>
+        <p>Current database setup:</p>
+        <ul>
+            <li>✅ Supabase configured</li>
+            <li>✅ RLS disabled for development</li>
+            <li>✅ Foreign key constraints removed</li>
+            <li>✅ Clerk UUID generation implemented</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🔧 Next Steps</h2>
+        <p>If you're still experiencing errors:</p>
+        <ol>
+            <li>Open browser console (F12) and check for JavaScript errors</li>
+            <li>Look for specific error messages in the console</li>
+            <li>Check the Network tab for failed API requests</li>
+            <li>Verify that both teacher and student can login successfully</li>
+            <li>Ensure the test was created successfully by checking the teacher dashboard</li>
+        </ol>
+    </div>
+
+    <script>
+        function openMainApp() {
+            window.open('http://localhost:5173', '_blank');
+        }
+
+        function openIncognito() {
+            alert('Please manually open an incognito/private window and navigate to the shared test link');
+        }
+
+        function checkConsole() {
+            alert('Press F12 to open Developer Tools, then check the Console tab for error messages');
+        }
+
+        function copyTestLink() {
+            const exampleLink = 'http://localhost:5173/test/[TEST_ID_HERE]';
+            navigator.clipboard.writeText(exampleLink).then(() => {
+                alert('Example test link format copied to clipboard. Replace [TEST_ID_HERE] with actual test ID.');
+            }).catch(() => {
+                prompt('Copy this example test link format:', exampleLink);
+            });
+        }
+
+        // Auto-open main app
+        console.log('🧪 MCQ Portal Debug Tool loaded');
+        console.log('📝 Check the main application at: http://localhost:5173');
+        console.log('🔍 Look for console errors when testing shared links');
+    </script>
+</body>
+</html>

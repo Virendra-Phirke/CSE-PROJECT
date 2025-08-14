@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizMaster - Multiple Choice Quiz Platform</title>
+    
+    <!-- Refined Content Security Policy (development). For production, set via HTTP headers. -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://*.jsdelivr.net https://challenges.cloudflare.com; 
+      connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://clerk-telemetry.com https://*.supabase.co wss://*.supabase.co; 
+      style-src 'self' 'unsafe-inline' https://*.clerk.com https://*.clerk.accounts.dev; 
+      img-src 'self' data: blob: https://*.clerk.com https://*.clerk.accounts.dev; 
+      font-src 'self' data: https://*.clerk.com https://*.clerk.accounts.dev; 
+      frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com; 
+      worker-src 'self' blob:; 
+      object-src 'none';
+      base-uri 'self';
+    ">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

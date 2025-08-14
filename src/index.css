@@ -1,0 +1,589 @@
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply transition-colors duration-300 bg-gray-50 dark:bg-dark-bg-primary text-gray-900 dark:text-dark-text-primary;
+    /* Reserve space for fixed header (moved from utilities block) */
+    padding-top: 4rem;
+  }
+  
+  /* Global Dark Mode Overrides (replaced @apply with raw CSS to avoid lint errors) */
+  .dark .bg-white { background-color: #1a1a1a !important; }
+  .dark .bg-gray-50 { background-color: #0f0f0f !important; }
+  .dark .border-gray-200 { border-color: #374151 !important; }
+  .dark .text-gray-900 { color: #ffffff !important; }
+  .dark .text-gray-800 { color: #ffffff !important; }
+  .dark .text-gray-700 { color: #d1d5db !important; }
+  .dark .text-gray-600 { color: #d1d5db !important; }
+  .dark .text-gray-500 { color: #9ca3af !important; }
+  .dark .text-gray-400 { color: #9ca3af !important; }
+  .dark .hover\:bg-gray-50:hover { background-color: #262626 !important; }
+  .dark .bg-gray-100 { background-color: #262626 !important; }
+  .dark .bg-gray-200 { background-color: #262626 !important; }
+
+  /* Subtle elevation adjustments */
+  .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.6); }
+  .dark .shadow, .dark .shadow-md { box-shadow: 0 2px 4px -1px rgba(0,0,0,0.7), 0 4px 6px -1px rgba(0,0,0,0.6); }
+
+  /* Custom scrollbar for dark theme (raw CSS instead of @apply) */
+  .dark ::-webkit-scrollbar { width: 0.5rem; }
+  .dark ::-webkit-scrollbar-track { background-color: #1a1a1a; }
+  .dark ::-webkit-scrollbar-thumb { background-color: #374151; border-radius: 9999px; }
+  .dark ::-webkit-scrollbar-thumb:hover { background-color: #9333ea; }
+  
+  /* Hide Clerk development banner */
+  [data-clerk-component="unsafeMetadata"],
+  .cl-devModeWarning,
+  .cl-warning,
+  [class*="clerk-dev"],
+  [class*="development-mode"] {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Landing Page Animations */
+  .animate-fade-in-up {
+    animation: fadeInUp 1s ease forwards;
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+  }
+
+  .fade-in.animate-fade-in-up {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Button variants for dark theme */
+  .btn-primary {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105;
+    @apply bg-gradient-to-r from-accent-red-500 to-accent-purple-600;
+    @apply text-white shadow-lg hover:shadow-xl;
+    @apply focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-dark-bg-primary;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200;
+    @apply bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border;
+    @apply text-gray-700 dark:text-dark-text-primary hover:bg-gray-50 dark:hover:bg-gray-700;
+    @apply focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-dark-bg-primary;
+  }
+  
+  .btn-ghost {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+    @apply text-gray-600 dark:text-dark-text-secondary hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary;
+    @apply focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-dark-bg-primary;
+  }
+  
+  /* Role selection button variants */
+  .role-button {
+    @apply p-6 border-2 rounded-xl transition-all duration-300 cursor-pointer;
+    @apply hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply transform hover:-translate-y-1 active:scale-[0.98];
+  }
+  
+  .role-button-student {
+    @apply role-button border-gray-200 dark:border-dark-border;
+    @apply hover:border-accent-purple-400 dark:hover:border-accent-purple-500;
+    @apply focus:ring-accent-purple-500 dark:focus:ring-offset-dark-bg-primary;
+  }
+  
+  .role-button-student.selected {
+    @apply border-accent-purple-500 bg-gradient-to-br from-accent-purple-50 to-purple-100;
+    @apply dark:bg-gradient-to-br dark:from-accent-purple-900/30 dark:to-purple-900/20;
+    @apply shadow-lg shadow-purple-200/50 dark:shadow-purple-900/30;
+  }
+  
+  .role-button-teacher {
+    @apply role-button border-gray-200 dark:border-dark-border;
+    @apply hover:border-accent-red-400 dark:hover:border-accent-red-500;
+    @apply focus:ring-accent-red-500 dark:focus:ring-offset-dark-bg-primary;
+  }
+  
+  .role-button-teacher.selected {
+    @apply border-accent-red-500 bg-gradient-to-br from-accent-red-50 to-red-100;
+    @apply dark:bg-gradient-to-br dark:from-accent-red-900/30 dark:to-red-900/20;
+    @apply shadow-lg shadow-red-200/50 dark:shadow-red-900/30;
+  }
+  
+  /* Card component variants */
+  .card {
+    @apply bg-white dark:bg-dark-bg-secondary border border-gray-200 dark:border-dark-border;
+    @apply rounded-xl shadow-lg dark:shadow-2xl transition-all duration-300;
+  }
+  
+  .card-elevated {
+    @apply card shadow-xl dark:shadow-2xl hover:shadow-2xl dark:hover:shadow-2xl;
+    @apply transform hover:-translate-y-1 hover:scale-[1.02];
+  }
+  
+  .card-interactive {
+    @apply card cursor-pointer;
+    @apply hover:shadow-xl dark:hover:shadow-2xl hover:border-gray-300 dark:hover:border-gray-600;
+    @apply transform hover:-translate-y-0.5 active:scale-[0.98];
+  }
+  
+  .card-gradient {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.9) 0%, 
+      rgba(248, 250, 252, 0.9) 100%);
+  }
+  
+  .dark .card-gradient {
+    background: linear-gradient(135deg, 
+      rgba(30, 41, 59, 0.95) 0%, 
+      rgba(15, 23, 42, 0.95) 100%);
+  }
+  
+  .card-gradient::before {
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    content: '';
+    background: linear-gradient(135deg, 
+      rgba(168, 85, 247, 0.05) 0%, 
+      rgba(239, 68, 68, 0.05) 100%);
+  }
+  
+  .card-gradient:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* Input styling */
+  .input {
+    @apply w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-dark-border;
+    @apply bg-white dark:bg-dark-bg-tertiary text-gray-900 dark:text-dark-text-primary;
+    @apply placeholder-gray-500 dark:placeholder-dark-text-tertiary;
+    @apply focus:ring-2 focus:ring-accent-purple-500 focus:border-transparent;
+    @apply transition-all duration-200;
+  }
+  
+  /* Icon enhancements */
+  .icon-primary {
+    @apply text-accent-purple-600 dark:text-accent-purple-400;
+    filter: drop-shadow(0 1px 2px rgba(168, 85, 247, 0.3));
+  }
+  
+  .icon-secondary {
+    @apply text-accent-red-600 dark:text-accent-red-400;
+    filter: drop-shadow(0 1px 2px rgba(239, 68, 68, 0.3));
+  }
+  
+  /* Auth toggle improvements */
+  .auth-toggle {
+    @apply bg-gray-100 dark:bg-dark-bg-tertiary p-1.5 rounded-xl;
+    @apply border border-gray-200 dark:border-dark-border;
+    @apply shadow-inner;
+  }
+  
+  .auth-toggle-button {
+    @apply px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply relative overflow-hidden;
+  }
+  
+  .auth-toggle-button.active {
+    @apply bg-white dark:bg-dark-bg-secondary text-gray-900 dark:text-dark-text-primary;
+    @apply shadow-md border border-gray-200 dark:border-dark-border;
+    @apply transform scale-105;
+  }
+  
+  .auth-toggle-button:not(.active) {
+    @apply text-gray-500 dark:text-dark-text-tertiary;
+    @apply hover:text-gray-700 dark:hover:text-dark-text-secondary;
+    @apply hover:bg-white/50 dark:hover:bg-dark-bg-secondary/50;
+  }
+
+  /* Modern Auth Card Styles */
+  .modern-auth-card {
+    @apply relative bg-gray-900/90 backdrop-blur-xl border border-pink-500/20 rounded-3xl p-10;
+    @apply shadow-2xl shadow-pink-500/10;
+    min-height: 600px;
+    background: linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(30, 30, 50, 0.95) 100%);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(233, 30, 99, 0.2);
+    box-shadow: 
+      0 25px 80px rgba(0, 0, 0, 0.4),
+      0 0 40px rgba(233, 30, 99, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Flip Animation Container */
+  .card-flip-container {
+    @apply relative w-full;
+    perspective: 1000px;
+  }
+
+  .card-flip-inner {
+    @apply relative w-full transition-transform duration-500;
+    transform-style: preserve-3d;
+  }
+
+  .card-flip-container.flipping .card-flip-inner {
+    transform: rotateY(180deg);
+  }
+
+  /* Modern Role Options */
+  .modern-role-option {
+    @apply relative flex-1 p-6 bg-gray-800/50 border-2 border-pink-500/20 rounded-2xl;
+    @apply cursor-pointer transition-all duration-300 text-center overflow-hidden;
+    @apply hover:border-pink-500/40 hover:bg-gray-700/60 hover:-translate-y-1;
+    @apply focus:outline-none focus:ring-2 focus:ring-pink-500/50;
+  }
+
+  .modern-role-option::before {
+    @apply absolute top-0 left-0 w-full h-full opacity-0 transition-opacity duration-500;
+    content: '';
+    background: linear-gradient(90deg, transparent, rgba(233, 30, 99, 0.1), transparent);
+    transform: translateX(-100%);
+  }
+
+  .modern-role-option:hover::before {
+    @apply opacity-100;
+    transform: translateX(100%);
+  }
+
+  .modern-role-option.selected {
+    @apply border-pink-500 bg-gradient-to-br from-pink-500/20 to-purple-500/20;
+    @apply shadow-lg shadow-pink-500/30;
+  }
+
+  /* Modern Mode Toggle Buttons */
+  .modern-mode-btn {
+    @apply flex-1 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-pink-500/50;
+  }
+
+  .modern-mode-btn.active {
+    @apply bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg;
+    @apply transform hover:scale-105 hover:shadow-pink-500/30;
+  }
+
+  .modern-mode-btn.inactive {
+    @apply bg-gray-700/50 border border-gray-600/50 text-gray-300;
+    @apply hover:bg-gray-600/60 hover:text-white;
+  }
+
+  /* Modern Input Field */
+  .modern-input-field {
+    @apply w-full px-4 py-4 bg-gray-800/50 border border-gray-600/50 rounded-xl;
+    @apply text-white placeholder-gray-400 transition-all duration-300;
+    @apply focus:border-pink-500 focus:bg-gray-700/60 focus:shadow-lg focus:shadow-pink-500/20;
+  }
+
+  /* Modern Google Button */
+  .modern-google-btn {
+    @apply w-full px-4 py-4 bg-gray-800/50 border border-gray-600/50 rounded-xl;
+    @apply text-gray-200 font-medium transition-all duration-300;
+    @apply hover:bg-gray-700/60 hover:border-pink-500/30;
+    @apply flex items-center justify-center gap-3;
+  }
+
+  /* Modern Continue Button */
+  .modern-continue-btn {
+    @apply w-full px-4 py-4 bg-gradient-to-r from-pink-500 to-purple-600;
+    @apply border-0 rounded-xl text-white text-base font-semibold;
+    @apply cursor-pointer transition-all duration-300 relative overflow-hidden;
+    @apply hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/40;
+  }
+
+  .modern-continue-btn::before {
+    @apply absolute top-0 left-0 w-full h-full opacity-0 transition-all duration-500;
+    content: '';
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+  }
+
+  .modern-continue-btn:hover::before {
+    @apply opacity-100;
+    transform: translateX(100%);
+  }
+
+  /* Animated Background Effects */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-gradient-shift {
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  /* Floating Particles Effect */
+  .floating-particles::before {
+    @apply absolute top-0 left-0 w-full h-full pointer-events-none;
+    content: '';
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, rgba(233, 30, 99, 0.3), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(142, 68, 173, 0.2), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(233, 30, 99, 0.2), transparent);
+    background-size: 150px 150px;
+    animation: float-particles 20s infinite linear;
+  }
+
+  @keyframes float-particles {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-150px, -150px); }
+  }
+
+  /* Clerk Component Overrides */
+  .clerk-container .cl-card {
+    @apply bg-transparent shadow-none border-0;
+  }
+
+  .clerk-container .cl-formFieldInput {
+    @apply bg-gray-800/50 border-gray-600/50 text-white;
+  }
+
+  .clerk-container .cl-formFieldInput:focus {
+    @apply border-pink-500 bg-gray-700/60;
+  }
+
+  .clerk-container .cl-formButtonPrimary {
+    @apply bg-gradient-to-r from-pink-500 to-purple-600;
+  }
+
+  /* Ensure Clerk components are visible and properly styled */
+  .clerk-container {
+    width: 100%;
+    min-height: 300px;
+    display: block !important;
+    position: relative;
+  }
+
+  .clerk-container > div {
+    width: 100%;
+    display: block !important;
+  }
+
+  .clerk-container [data-clerk-component] {
+    width: 100% !important;
+    display: block !important;
+    min-height: 200px;
+  }
+
+  /* Force visibility of Clerk forms */
+  .cl-rootBox,
+  .cl-card,
+  .cl-main,
+  .cl-form {
+    display: block !important;
+    width: 100% !important;
+  }
+}
+
+@layer utilities {
+  .gradient-bg {
+    @apply bg-gradient-to-br from-gray-50 via-white to-purple-50;
+  }
+  
+  .dark .gradient-bg {
+    @apply bg-gradient-to-br from-dark-bg-primary via-dark-bg-secondary to-dark-bg-tertiary;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-accent-red-500 to-accent-purple-600 bg-clip-text text-transparent;
+  }
+
+  /* Keyframe animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animation delays */
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .delay-400 {
+    animation-delay: 0.4s;
+  }
+
+  .delay-1000 {
+    animation-delay: 1s;
+  }
+
+  /* Progress Bar Utility */
+  .progress-bar {
+    transition: width 0.3s ease;
+  }
+
+  /* Clerk dark mode overrides */
+  .dark .cl-userButtonPopover, 
+  .dark .cl-userButtonPopoverCard, 
+  .dark .cl-avatarPopover, 
+  .dark .cl-userPreview, 
+  .dark .cl-card, 
+  .dark .cl-modalContent {
+    background-color: #111827 !important; /* slate-900 */
+    color: #f9fafb !important; /* gray-50 */
+    border-color: #374151 !important; /* slate-700 */
+  }
+  .dark .cl-userButtonPopoverActionButton, 
+  .dark .cl-userButtonPopoverActionButton__manageAccount,
+  .dark .cl-userButtonPopoverActionButton__signOut,
+  .dark .cl-profileSectionPrimaryButton,
+  .dark .cl-profileSectionSecondaryButton,
+  .dark .cl-formButtonPrimary {
+    background: linear-gradient(90deg,#8b5cf6,#ec4899) !important;
+    color: #ffffff !important;
+    border: 1px solid #4b5563 !important;
+  }
+  .dark .cl-userButtonPopoverActionButton:hover,
+  .dark .cl-profileSectionPrimaryButton:hover,
+  .dark .cl-profileSectionSecondaryButton:hover,
+  .dark .cl-formButtonPrimary:hover {
+    filter: brightness(1.1);
+  }
+  .dark .cl-dividerLine { background-color: #374151 !important; }
+  .dark .cl-internal-1ho4x1v, /* generic input wrapper */
+  .dark .cl-formFieldInput, 
+  .dark .cl-formField__text > input, 
+  .dark .cl-formField__password > input {
+    background-color: #1f2937 !important; /* slate-800 */
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+  }
+  .dark .cl-formFieldInput:focus { border-color:#8b5cf6 !important; box-shadow:0 0 0 1px #8b5cf6; }
+  .dark .cl-badge { background-color:#1f2937 !important; color:#93c5fd !important; }
+  .dark .cl-userButtonPopoverFooter, 
+  .dark .cl-footer { background: transparent !important; }
+  .dark .cl-userButtonPopoverActionButtonIcon { color:#f9fafb !important; }
+  .dark .cl-navbar, .dark .cl-profilePage { background: #111827 !important; }
+  .dark .cl-profileSectionTitleText { color:#f9fafb !important; }
+  .dark .cl-header { background: transparent !important; }
+  .dark .cl-userButtonPopoverActionButton:focus { outline:2px solid #8b5cf6 !important; }
+  
+  /* Premium Clerk Styles */
+  .premium-clerk-wrapper .cl-card, 
+  .premium-clerk-wrapper .cl-profilePage, 
+  .premium-clerk-wrapper .cl-navbar { 
+    background: linear-gradient(145deg, rgba(17,24,39,0.85), rgba(39,18,53,0.75)) !important;
+    backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    box-shadow: 0 10px 35px -5px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .premium-clerk-wrapper .cl-profilePage { border-radius: 1.25rem !important; overflow:hidden; }
+  .premium-clerk-wrapper .cl-navbar { border-right:1px solid rgba(255,255,255,0.07) !important; }
+  .premium-clerk-wrapper .cl-navbarButton { color:#cbd5e1 !important; font-weight:500; }
+  .premium-clerk-wrapper .cl-navbarButton:focus, 
+  .premium-clerk-wrapper .cl-navbarButton:hover { background:rgba(255,255,255,0.06) !important; color:#fff !important; }
+  .premium-clerk-wrapper .cl-navbarButton__active { background:linear-gradient(90deg,#8b5cf6,#ec4899)!important; color:#fff !important; box-shadow:0 0 0 1px rgba(255,255,255,0.15) inset; }
+  .premium-clerk-wrapper .cl-profilePage__profile .cl-profileSectionContent { background:transparent !important; }
+  .premium-clerk-wrapper .cl-formFieldInput { background:#1e293b !important; border:1px solid #334155 !important; color:#f1f5f9 !important; border-radius:0.75rem !important; }
+  .premium-clerk-wrapper .cl-formFieldInput:focus { border-color:#a855f7 !important; box-shadow:0 0 0 2px rgba(168,85,247,0.4); }
+  .premium-clerk-wrapper .cl-profileSectionPrimaryButton, 
+  .premium-clerk-wrapper .cl-profileSectionSecondaryButton, 
+  .premium-clerk-wrapper .cl-formButtonPrimary { 
+    border-radius:0.75rem !important; 
+    background:linear-gradient(90deg,#8b5cf6,#ec4899) !important; 
+    box-shadow:0 4px 18px -2px rgba(236,72,153,0.45); 
+    font-weight:600; 
+  }
+  .premium-clerk-wrapper .cl-profileSectionSecondaryButton { background:linear-gradient(90deg,#0ea5e9,#6366f1)!important; box-shadow:0 4px 18px -2px rgba(14,165,233,0.4); }
+  .premium-clerk-wrapper .cl-profileSectionPrimaryButton:hover, 
+  .premium-clerk-wrapper .cl-profileSectionSecondaryButton:hover, 
+  .premium-clerk-wrapper .cl-formButtonPrimary:hover { filter:brightness(1.1) saturate(1.2); }
+  .premium-clerk-wrapper .cl-dividerLine { background:#334155 !important; }
+  .premium-clerk-wrapper .cl-badge { background:#312e81 !important; color:#c4b5fd !important; border-radius:0.5rem !important; }
+  .premium-clerk-wrapper .cl-alert { background:#1e293b !important; border:1px solid #334155 !important; }
+  .premium-clerk-wrapper .cl-avatarImageActionsUpload, 
+  .premium-clerk-wrapper .cl-avatarImageActionsRemove { color:#f8fafc !important; background:rgba(255,255,255,0.08); }
+  .premium-clerk-wrapper .cl-avatarImageActionsUpload:hover, 
+  .premium-clerk-wrapper .cl-avatarImageActionsRemove:hover { background:rgba(255,255,255,0.15); }
+  .premium-clerk-wrapper .cl-userButtonPopoverCard { background:linear-gradient(145deg,#111827,#1e1b4b) !important; border:1px solid rgba(255,255,255,0.08)!important; }
+  
+  /* === Enhanced Premium Clerk Layout Fixes === */
+.premium-clerk-wrapper .cl-modal, 
+.premium-clerk-wrapper .cl-modalContent, 
+.premium-clerk-wrapper .cl-card, 
+.premium-clerk-wrapper .cl-rootBox { 
+  background: radial-gradient(circle at 20% 20%, rgb(77, 1, 255), transparent 60%),
+              linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,27,75,0.92)) !important;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) !important;
+  color: #e2e8f0;
+}
+.premium-clerk-full .cl-card { min-height: auto !important; }
+.premium-clerk-full .cl-profilePage { 
+  display: grid !important; 
+  grid-template-columns: 230px 1fr; 
+  gap: 0; 
+  min-height: calc(100vh - 6rem) !important; 
+  padding: 0 !important; 
+  background: transparent !important;
+}
+.premium-clerk-full .cl-navbar { 
+  position: sticky; top: 0; align-self: start; height: 100%; 
+  padding: 1.25rem 1rem !important; 
+  background: linear-gradient(180deg, rgba(31,41,55,0.7), rgba(17,24,39,0.6)) !important; 
+  border-right: 1px solid rgba(255,255,255,0.07) !important; 
+  backdrop-filter: blur(18px);
+}
+.premium-clerk-full .cl-navbarButton { 
+  border-radius: 0.75rem !important; 
+  font-weight: 500; 
+  transition: background .25s, color .25s;
+}
+.premium-clerk-full .cl-navbarButton:hover { background: rgba(255,255,255,0.07) !important; color:#fff !important; }
+.premium-clerk-full .cl-navbarButton__active { 
+  background: linear-gradient(90deg,#8b5cf6,#ec4899) !important; 
+  color:#fff !important; 
+  box-shadow: 0 4px 16px -4px rgba(236,72,153,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset !important; 
+}
+.premium-clerk-full .cl-profilePage__profile, 
+.premium-clerk-full .cl-profilePage__security { 
+  padding: 2.25rem 2.5rem 3rem !important; 
+  background: linear-gradient(160deg, rgba(15,23,42,0.6), rgba(30,27,75,0.55)) !important; 
+  backdrop-filter: blur(14px); 
+}
+.premium-clerk-full .cl-profileSection { border-radius: 1.25rem !important; overflow: hidden; }
+.premium-clerk-full .cl-profileSectionContent { background: transparent !important; }
+.premium-clerk-full .cl-profileSectionTitleText { font-size: 0.9rem !important; letter-spacing: .05em; text-transform: uppercase; color:#94a3b8 !important; }
+.premium-clerk-full .cl-formFieldInput { border-radius: .75rem !important; }
+.premium-clerk-full .cl-formFieldInput:focus { outline: none !important; }
+.premium-clerk-full .cl-formButtonPrimary, 
+.premium-clerk-full .cl-profileSectionPrimaryButton, 
+.premium-clerk-full .cl-profileSectionSecondaryButton { 
+  border-radius: .75rem !important; 
+  background: linear-gradient(90deg,#8b5cf6,#ec4899) !important; 
+  box-shadow: 0 6px 22px -6px rgba(236,72,153,0.55) !important; 
+  font-weight:600 !important; 
+}
+.premium-clerk-full .cl-profileSectionSecondaryButton { background: linear-gradient(90deg,#0ea5e9,#6366f1) !important; box-shadow: 0 6px 22px -6px rgba(99,102,241,0.45) !important; }
+.premium-clerk-full .cl-formButtonPrimary:hover, 
+.premium-clerk-full .cl-profileSectionPrimaryButton:hover, 
+.premium-clerk-full .cl-profileSectionSecondaryButton:hover { filter:brightness(1.1) saturate(1.2); }
+.premium-clerk-full .cl-dividerLine { background: #334155 !important; }
+.premium-clerk-full .cl-badge { background:#312e81 !important; color:#c7d2fe !important; }
+.premium-clerk-full .cl-avatarImageActionsUpload, 
+.premium-clerk-full .cl-avatarImageActionsRemove { background: rgba(255,255,255,0.08) !important; }
+.premium-clerk-full .cl-avatarImageActionsUpload:hover, 
+.premium-clerk-full .cl-avatarImageActionsRemove:hover { background: rgba(255,255,255,0.16) !important; }
+/* Remove default modal sizing gap */
+.premium-clerk-wrapper .cl-modalContent { min-height: unset !important; height: auto !important; }
+.premium-clerk-wrapper .cl-modalContent > div { height: auto !important; }
+/* === End Enhancements === */
+
+/* Restored utilities & close block */
+}
