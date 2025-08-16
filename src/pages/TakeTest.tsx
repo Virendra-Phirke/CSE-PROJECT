@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { useTestQuery } from '../hooks/quizQueries';
+import { useTestQuery, useAttemptQuery } from '../hooks/quizQueries';
+import { useStartAttemptMutation, useSubmitResultMutation } from '../hooks/quizMutations';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest } from '../contexts/TestContext';
 import { CheckCircle, AlertCircle, BookOpen, Users } from 'lucide-react';
 import { ModernAuthCard } from '../components/ModernAuthCard';
 import { Skeleton } from '../components/Skeleton';
 import { useLoading } from '../hooks/useLoading';
+import { useToast } from '../components/ui/Toast';
 import confetti from 'canvas-confetti';
 
 // Auto-submit safeguard configuration
@@ -23,9 +25,12 @@ const AUTO_SUBMIT_CONFIG = {
 function TakeTest() {
   const { testId } = useParams<{ testId: string }>();
   const { user, isLoaded } = useUser();
-  const { submitTestResultServer, loading, startTestAttempt, attempt } = useTest();
+  const { loading } = useTest();
+  const startAttemptMutation = useStartAttemptMutation();
+  const submitResultMutation = useSubmitResultMutation();
   const navigate = useNavigate();
   const { start: startLoading, stop: stopLoading, isLoading } = useLoading();
+  const { addToast, ToastContainer } = useToast();
 
   // Removed local test state in favor of React Query
   // const [test, setTest] = useState<LegacyTest | null>(null);
@@ -39,7 +44,10 @@ function TakeTest() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [flagged, setFlagged] = useState<Record<number, boolean>>({});
   const progressBarRef = useRef<HTMLDivElement>(null);
-  const attemptInitTriedRef = useRef(false);
+  
+  // Use React Query for attempt state
+  const attemptQuery = useAttemptQuery(testId);
+  const attempt = attemptQuery.data || null;
   
   // Auto-submit safeguard state
   const lastAutoSubmitRef = useRef<number>(0);
@@ -108,24 +116,17 @@ function TakeTest() {
 
   // Attempt resurrection / auto-detect existing attempt
   useEffect(() => {
-    if (!test || !user || testStarted || !testId) return;
-    if (user.unsafeMetadata?.role !== 'student') return; // only for students
-    if (attemptInitTriedRef.current) return; // prevent repeated 404 spam
-    attemptInitTriedRef.current = true;
-    (async () => {
-      const existing = await startTestAttempt(testId); // idempotent; returns existing attempt if present
-      if (existing) {
-        if (existing.status === 'submitted') {
-          navigate(`/results/${testId}`);
-          return;
-        }
-        setTestStarted(true);
-      } else {
-        // leave user at intro page; manual Start Test will call again explicitly
-        attemptInitTriedRef.current = false; // allow manual retry
-      }
-    })();
-  }, [test, user, testStarted, testId, startTestAttempt, navigate]);
+    if (!attempt || !test || testStarted) return;
+    
+    if (attempt.status === 'submitted') {
+      navigate(`/results/${testId}`);
+      return;
+    }
+    
+    if (attempt.status === 'in_progress') {
+      setTestStarted(true);
+    }
+  }, [attempt, test, testStarted, testId, navigate]);
 
   useEffect(() => {
     if (test && testStarted) {
@@ -226,13 +227,20 @@ function TakeTest() {
     }
     setSubmitting(true);
     try {
-      await submitTestResultServer({ testId: test.id, answers });
+      await submitResultMutation.mutateAsync({ testId: test.id, answers });
       // Fire confetti on successful submission
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
+      
+      addToast({
+        type: 'success',
+        title: 'Test Submitted!',
+        message: 'Your answers have been submitted successfully.'
+      });
+      
       navigate(`/results/${testId}`);
     } catch (error: unknown) {
       console.error('Error submitting test (server RPC):', error);
@@ -240,12 +248,16 @@ function TakeTest() {
       if (msg.includes('ALREADY_SUBMITTED') || msg.includes('RESULT_ALREADY_EXISTS')) {
         navigate(`/results/${testId}`);
       } else {
-        alert('Error submitting test. Please try again.');
+        addToast({
+          type: 'error',
+          title: 'Submission Failed',
+          message: 'Error submitting test. Please try again.'
+        });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [test, user, answers, testId, submitTestResultServer, navigate, attempt]);
+  }, [test, user, answers, testId, submitResultMutation, navigate, attempt, addToast]);
 
   // Timer effect - must be after handleSubmit declaration
   useEffect(() => {
@@ -279,7 +291,7 @@ function TakeTest() {
       
       try {
         lastAutoSubmitRef.current = now;
-        await submitTestResultServer({ testId: test.id, answers });
+        await submitResultMutation.mutateAsync({ testId: test.id, answers });
         console.log('Auto-backup submit successful');
         // If successful, navigate to results
         navigate(`/results/${testId}`);
@@ -297,7 +309,7 @@ function TakeTest() {
         clearInterval(backupIntervalRef.current);
       }
     };
-  }, [testStarted, test, attempt?.status, answers, testId, submitTestResultServer, navigate]);
+  }, [testStarted, test, attempt?.status, answers, testId, submitResultMutation, navigate]);
 
   // Auto-submit safeguard: force submit when approaching deadline
   useEffect(() => {
@@ -306,7 +318,7 @@ function TakeTest() {
     if (timeLeft > 0 && timeLeft <= AUTO_SUBMIT_CONFIG.FORCE_SUBMIT_BUFFER) {
       const forceSubmit = async () => {
         try {
-          await submitTestResultServer({ testId: test.id, answers });
+          await submitResultMutation.mutateAsync({ testId: test.id, answers });
           navigate(`/results/${testId}`);
         } catch (error) {
           console.error('Force submit failed:', error);
@@ -324,7 +336,7 @@ function TakeTest() {
         clearTimeout(forceSubmitTimeoutRef.current);
       }
     };
-  }, [timeLeft, testStarted, test, attempt?.status, answers, testId, submitTestResultServer, navigate]);
+  }, [timeLeft, testStarted, test, attempt?.status, answers, testId, submitResultMutation, navigate]);
 
   // Auto-submit safeguard: handle page visibility changes and beforeunload
   useEffect(() => {
@@ -337,7 +349,7 @@ function TakeTest() {
         if (now - lastAutoSubmitRef.current >= AUTO_SUBMIT_CONFIG.MIN_SUBMIT_INTERVAL) {
           try {
             lastAutoSubmitRef.current = now;
-            await submitTestResultServer({ testId: test.id, answers });
+            await submitResultMutation.mutateAsync({ testId: test.id, answers });
           } catch (error) {
             console.warn('Visibility change submit failed:', error);
           }
@@ -348,7 +360,7 @@ function TakeTest() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Try to submit synchronously (best effort)
       try {
-        submitTestResultServer({ testId: test.id, answers });
+        submitResultMutation.mutateAsync({ testId: test.id, answers });
       } catch (error) {
         console.warn('Before unload submit failed:', error);
       }
@@ -366,16 +378,22 @@ function TakeTest() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [testStarted, test, attempt?.status, answers, testId, submitTestResultServer]);
+  }, [testStarted, test, attempt?.status, answers, testId, submitResultMutation]);
 
   // Utility functions
   const startTest = async () => {
     if (!testId) return;
-    const started = await startTestAttempt(testId);
-    if (started) {
+    try {
+      const result = await startAttemptMutation.mutateAsync({ testId });
+      if (result.attempt) {
       setTestStarted(true);
-    } else {
-      alert('Could not start test attempt.');
+      }
+    } catch (error) {
+      addToast({
+        type: 'error',
+        title: 'Failed to Start Test',
+        message: 'Could not start test attempt. Please try again.'
+      });
     }
   };
 
@@ -596,6 +614,7 @@ function TakeTest() {
 
   return (
     <div className="min-h-screen bg-mesh-premium">
+      <ToastContainer />
       {/* Header */}
       <div className="backdrop-blur-xl bg-white/70 dark:bg-black/40 shadow-sm border-b border-white/20 sticky top-0 z-20 supports-[backdrop-filter]:bg-white/55 dark:supports-[backdrop-filter]:bg-black/30" role="banner">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

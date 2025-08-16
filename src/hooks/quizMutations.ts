@@ -19,6 +19,13 @@ export function useCreateTestMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (testData: Omit<LegacyTest, 'id'>) => {
+      if (!user) throw new Error('Not authenticated');
+      
+      // Check if Supabase is properly configured
+      if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+        throw new Error('Database not configured. Please set up Supabase connection.');
+      }
+      
       const { userUUID } = await prep(user);
       const { data: testInsert, error: testError } = await supabase
         .from('tests')
@@ -49,6 +56,9 @@ export function useCreateTestMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tests'] });
+    },
+    onError: (error) => {
+      console.error('Error creating test:', error);
     }
   });
 }

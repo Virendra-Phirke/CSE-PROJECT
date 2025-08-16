@@ -90,7 +90,9 @@ export const useToast = () => {
 
   const addToast = (toast: Omit<ToastProps, 'id' | 'onClose'>) => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { ...toast, id, onClose: removeToast }]);
+    const newToast = { ...toast, id, onClose: removeToast };
+    setToasts(prev => [...prev, newToast]);
+    return id;
   };
 
   const removeToast = (id: string) => {
@@ -98,11 +100,11 @@ export const useToast = () => {
   };
 
   const ToastContainer = () => (
-    <>
+    <div className="fixed top-4 right-4 z-50 space-y-2">
       {toasts.map(toast => (
         <Toast key={toast.id} {...toast} />
       ))}
-    </>
+    </div>
   );
 
   return {

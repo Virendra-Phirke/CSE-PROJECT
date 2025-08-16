@@ -1,6 +1,6 @@
-import confetti from 'canvas-confetti';
+import confetti, { Options } from 'canvas-confetti';
 
-export const fireConfetti = (options?: Partial<Parameters<typeof confetti>[0]>) => {
+export const fireConfetti = (options?: Partial<Options>) => {
   confetti({
     particleCount: 120,
     spread: 70,

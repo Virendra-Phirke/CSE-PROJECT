@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useTest } from '../hooks/useTest';
+import { useCreateTestMutation } from '../hooks/quizMutations';
 import { LegacyQuestion } from '../contexts/TestContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save, Sparkles } from 'lucide-react';
+import { useToast } from '../components/ui/Toast';
 
 function TestCreation() {
   const { user } = useUser();
-  const { createTest } = useTest();
+  const createTestMutation = useCreateTestMutation();
   const navigate = useNavigate();
+  const { addToast, ToastContainer } = useToast();
 
   const [testData, setTestData] = useState({
     title: '',
@@ -116,40 +118,41 @@ function TestCreation() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if Supabase is configured
-    if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
-      alert('Database not configured. Please connect to Supabase first.');
-      return;
-    }
-
     // Validate form
     if (!testData.title || questions.some((q: LegacyQuestion) => !q.question || q.options.some((opt: string) => !opt))) {
-      alert('Please fill in all fields');
+      addToast({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Please fill in all fields'
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      await createTest({
+      await createTestMutation.mutateAsync({
         ...testData,
         questions,
         createdBy: user?.id || '',
         duration: parseInt(testData.duration.toString())
       });
+      
+      addToast({
+        type: 'success',
+        title: 'Test Created',
+        message: 'Your test has been created successfully!'
+      });
+      
       navigate('/teacher');
     } catch (error: unknown) {
       console.error('Error creating test:', error);
       
-      // Show user-friendly error message
-      const errorMessage = error instanceof Error ? error.message : '';
-      const errorCode = (error as { code?: string })?.code;
-      
-      if (errorMessage.includes('Permission denied') || errorCode === '42501') {
-        alert('Unable to create test. Please ensure you are connected to Supabase and try again.');
-      } else {
-        alert('Failed to create test. Please check your database connection and try again.');
-      }
+      addToast({
+        type: 'error',
+        title: 'Failed to Create Test',
+        message: error instanceof Error ? error.message : 'Please check your database connection and try again.'
+      });
     } finally {
       setLoading(false);
     }
@@ -157,6 +160,7 @@ function TestCreation() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer />
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">

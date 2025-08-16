@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useTest } from '../hooks/useTest';
+import { useTestQuery, useResultsQuery } from '../hooks/quizQueries';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import { ArrowLeft, CheckCircle, XCircle, Clock, Trophy } from 'lucide-react';
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
@@ -10,7 +11,10 @@ import { Skeleton, CardSkeleton } from '../components/Skeleton';
 function TestResults() {
   const { testId } = useParams<{ testId: string }>();
   const { user } = useUser();
-  const { getTestById, getResultsByTestId, results, loading } = useTest();
+  const { results } = useTest();
+  const testQuery = useTestQuery(testId);
+  const resultsQuery = useResultsQuery(testQuery.data ? [testQuery.data] : undefined);
+  const loading = testQuery.isLoading || resultsQuery.isLoading;
   const [userUUID, setUserUUID] = useState<string>('');
 
   // Generate UUID for current user to find their result
@@ -24,8 +28,8 @@ function TestResults() {
     generateUserUUID();
   }, [user?.id]);
 
-  const test: LegacyTest | undefined = testId ? getTestById(testId) : undefined;
-  const testResults: LegacyTestResult[] = testId ? getResultsByTestId(testId) : [];
+  const test: LegacyTest | undefined = testQuery.data;
+  const testResults: LegacyTestResult[] = resultsQuery.data?.filter(r => r.testId === testId) || [];
   const myResult: LegacyTestResult | undefined = results.find((r: LegacyTestResult) => r.testId === testId && r.studentId === userUUID);
 
   if (loading) {

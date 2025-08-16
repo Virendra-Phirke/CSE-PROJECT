@@ -4,6 +4,7 @@ import { useUser, SignedIn, UserButton, SignInButton, SignedOut } from '@clerk/c
 import { TestProvider } from './contexts/TestContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingProvider } from './contexts/LoadingContext';
+import { useToast } from './components/ui/Toast';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -176,6 +177,8 @@ function AppHeader() {
 }
 
 function App() {
+  const { ToastContainer } = useToast();
+  
   return (
     <ErrorBoundary>
       <Router>
@@ -184,6 +187,7 @@ function App() {
             <TestProvider>
               <LoadingProvider>
                 <div className="min-h-screen bg-mesh-premium bg-[length:160%_160%] animate-gradient-shift dark:bg-[#0f0f12] text-gray-900 dark:text-gray-100 transition-colors duration-300 selection:bg-pink-500/80 selection:text-white">
+                  <ToastContainer />
                   <AppHeader />
                   <AppRoutes />
                 </div>

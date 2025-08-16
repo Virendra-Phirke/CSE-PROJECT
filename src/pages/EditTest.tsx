@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useTest } from '../hooks/useTest';
+import { useUpdateTestMutation } from '../hooks/quizMutations';
 import { LegacyQuestion } from '../contexts/TestContext';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
+import { useToast } from '../components/ui/Toast';
 
 function EditTest() {
   const { user } = useUser();
-  const { updateTest, getTestById } = useTest();
+  const { getTestById } = useTest();
+  const updateTestMutation = useUpdateTestMutation();
   const navigate = useNavigate();
   const { testId } = useParams<{ testId: string }>();
+  const { addToast, ToastContainer } = useToast();
 
   const [testData, setTestData] = useState({
     title: '',
@@ -116,29 +120,51 @@ function EditTest() {
     e.preventDefault();
     
     if (!testId) {
-      alert('Test ID is missing');
+      addToast({
+        type: 'error',
+        title: 'Error',
+        message: 'Test ID is missing'
+      });
       return;
     }
 
     // Validate form
     if (!testData.title || questions.some((q: LegacyQuestion) => !q.question || q.options.some((opt: string) => !opt))) {
-      alert('Please fill in all fields');
+      addToast({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Please fill in all fields'
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      await updateTest(testId, {
+      await updateTestMutation.mutateAsync({
+        id: testId,
+        data: {
         ...testData,
         questions,
         createdBy: user?.id || '',
         duration: parseInt(testData.duration.toString())
+        }
       });
+      
+      addToast({
+        type: 'success',
+        title: 'Test Updated',
+        message: 'Your test has been updated successfully!'
+      });
+      
       navigate('/teacher');
     } catch (error: unknown) {
       console.error('Error updating test:', error);
-      alert('Failed to update test. Please try again.');
+      addToast({
+        type: 'error',
+        title: 'Failed to Update Test',
+        message: error instanceof Error ? error.message : 'Please try again.'
+      });
     } finally {
       setLoading(false);
     }
@@ -146,6 +172,7 @@ function EditTest() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer />
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
