@@ -26,6 +26,10 @@ function RoleSetup() {
         }
       });
       
+      // Ensure user profile exists in database
+      const { ensureUserProfile } = await import('../lib/clerkUtils');
+      await ensureUserProfile(user, role);
+      
       // Navigate to return URL or appropriate dashboard
       if (returnTo) {
         navigate(returnTo, { replace: true });
@@ -35,6 +39,9 @@ function RoleSetup() {
       }
     } catch (error) {
       console.error('Error setting role:', error);
+      // Show error to user but don't prevent navigation
+      const dashboardPath = role === 'teacher' ? '/teacher' : '/student';
+      navigate(dashboardPath, { replace: true });
     } finally {
       setLoading(false);
     }

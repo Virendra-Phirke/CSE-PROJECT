@@ -21,22 +21,17 @@ export function useCreateTestMutation() {
     mutationFn: async (testData: Omit<LegacyTest, 'id'>) => {
       if (!user) throw new Error('Not authenticated');
       
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
-        throw new Error('Database not configured. Please set up Supabase connection.');
-      }
-      
       const { userUUID } = await prep(user);
       const { data: testInsert, error: testError } = await supabase
         .from('tests')
         .insert({
           title: testData.title,
           description: testData.description,
-            duration: testData.duration,
-            start_date: testData.startDate,
-            end_date: testData.endDate,
-            is_active: testData.isActive,
-            created_by: userUUID
+          duration: testData.duration,
+          start_date: testData.startDate,
+          end_date: testData.endDate,
+          is_active: testData.isActive,
+          created_by: userUUID
         })
         .select()
         .single();

@@ -30,7 +30,7 @@ function TestResults() {
 
   const test: LegacyTest | undefined = testQuery.data;
   const testResults: LegacyTestResult[] = resultsQuery.data?.filter(r => r.testId === testId) || [];
-  const myResult: LegacyTestResult | undefined = results.find((r: LegacyTestResult) => r.testId === testId && r.studentId === userUUID);
+  const myResult: LegacyTestResult | undefined = testResults.find((r: LegacyTestResult) => r.studentId === userUUID);
 
   if (loading) {
     return (

@@ -20,11 +20,7 @@ export const DatabaseStatus: React.FC<DatabaseStatusProps> = ({ className = '' }
       
       // Check if environment variables are set
       if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
-        throw new Error('Supabase URL not configured');
-      }
-
-      if (!import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY.includes('placeholder')) {
-        throw new Error('Supabase API key not configured');
+        throw new Error('Supabase configuration missing');
       }
 
       // Try to make a simple query

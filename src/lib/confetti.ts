@@ -1,6 +1,16 @@
-import confetti, { Options } from 'canvas-confetti';
+import confetti from 'canvas-confetti';
 
-export const fireConfetti = (options?: Partial<Options>) => {
+interface ConfettiOptions {
+  particleCount?: number;
+  spread?: number;
+  origin?: { x?: number; y?: number };
+  colors?: string[];
+  scalar?: number;
+  zIndex?: number;
+  disableForReducedMotion?: boolean;
+}
+
+export const fireConfetti = (options?: ConfettiOptions) => {
   confetti({
     particleCount: 120,
     spread: 70,

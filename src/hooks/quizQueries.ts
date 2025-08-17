@@ -55,7 +55,11 @@ async function fetchResults(user: ReturnType<typeof useUser>['user'], tests: Leg
   const userUUID = await getCachedUUIDFromClerkId(user.id);
   let query = supabase
     .from('test_results')
-    .select(`*, test:tests(title), student:profiles(name)`);
+    .select(`
+      id, test_id, student_id, score, total_questions, time_taken, answers, completed_at, created_at,
+      test:tests(title),
+      student:profiles(name)
+    `);
   if (role === 'student') {
     query = query.eq('student_id', userUUID);
   } else {
@@ -69,7 +73,7 @@ async function fetchResults(user: ReturnType<typeof useUser>['user'], tests: Leg
     id: result.id,
     testId: result.test_id,
     studentId: result.student_id,
-    studentName: result.student?.name || 'Unknown',
+    studentName: (result.student as any)?.name || 'Unknown Student',
     score: result.score,
     totalQuestions: result.total_questions,
     timeTaken: result.time_taken,

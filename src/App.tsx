@@ -93,7 +93,7 @@ function AppRoutes() {
       />
       <Route 
         path="/test/:testId" 
-        element={<TakeTest />}
+        element={user ? <TakeTest /> : <Navigate to="/login" state={{ returnTo: window.location.pathname }} />}
       />
       <Route 
         path="/results/:testId" 

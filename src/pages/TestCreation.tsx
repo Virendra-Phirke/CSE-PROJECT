@@ -148,10 +148,21 @@ function TestCreation() {
     } catch (error: unknown) {
       console.error('Error creating test:', error);
       
+      let errorMessage = 'Please check your database connection and try again.';
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key')) {
+          errorMessage = 'A test with this title already exists.';
+        } else if (error.message.includes('permission')) {
+          errorMessage = 'You do not have permission to create tests.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       addToast({
         type: 'error',
         title: 'Failed to Create Test',
-        message: error instanceof Error ? error.message : 'Please check your database connection and try again.'
+        message: errorMessage
       });
     } finally {
       setLoading(false);

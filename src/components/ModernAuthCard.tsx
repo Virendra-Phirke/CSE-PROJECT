@@ -142,7 +142,11 @@ export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({
                         formButtonPrimary: "modern-continue-btn w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200",
                         footerActionLink: "text-pink-400 hover:text-pink-300",
                         formResendCodeLink: "text-pink-400 hover:text-pink-300",
-                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300"
+                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300",
+                        formFieldSuccessText: "text-green-400",
+                        formFieldErrorText: "text-red-400",
+                        identityPreviewText: "text-gray-300",
+                        identityPreviewEditButton: "text-pink-400 hover:text-pink-300"
                       },
                       layout: {
                         showOptionalFields: false,
@@ -170,7 +174,11 @@ export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({
                         formButtonPrimary: "modern-continue-btn w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200",
                         footerActionLink: "text-pink-400 hover:text-pink-300",
                         formResendCodeLink: "text-pink-400 hover:text-pink-300",
-                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300"
+                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300",
+                        formFieldSuccessText: "text-green-400",
+                        formFieldErrorText: "text-red-400",
+                        identityPreviewText: "text-gray-300",
+                        identityPreviewEditButton: "text-pink-400 hover:text-pink-300"
                       },
                       layout: {
                         showOptionalFields: true,

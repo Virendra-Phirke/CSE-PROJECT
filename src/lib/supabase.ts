@@ -3,17 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Fallback for development if env vars are not set
-const defaultUrl = 'https://placeholder.supabase.co';
-const defaultKey = 'placeholder-key';
-
-console.log('Supabase URL:', supabaseUrl || 'Not set - using placeholder');
-
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase environment variables - using placeholders for development');
+  throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
 }
 
-export const supabase = createClient(supabaseUrl || defaultUrl, supabaseAnonKey || defaultKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Database types
 export interface Profile {

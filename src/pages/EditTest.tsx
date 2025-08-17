@@ -144,10 +144,10 @@ function EditTest() {
       await updateTestMutation.mutateAsync({
         id: testId,
         data: {
-        ...testData,
-        questions,
-        createdBy: user?.id || '',
-        duration: parseInt(testData.duration.toString())
+          ...testData,
+          questions,
+          createdBy: user?.id || '',
+          duration: parseInt(testData.duration.toString())
         }
       });
       

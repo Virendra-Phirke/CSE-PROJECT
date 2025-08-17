@@ -229,7 +229,8 @@ function TakeTest() {
     try {
       await submitResultMutation.mutateAsync({ testId: test.id, answers });
       // Fire confetti on successful submission
-      confetti({
+      const { fireConfetti } = await import('../lib/confetti');
+      fireConfetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
