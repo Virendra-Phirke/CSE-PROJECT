@@ -1,11 +1,10 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { useTestsQuery, useResultsQuery, useCreateTestMutation, useUpdateTestMutation, useDeleteTestMutation, useToggleTestStatusMutation, useStartAttemptMutation, useSubmitResultMutation } from '../hooks/quizQueries';
+import { useTestsQuery, useResultsQuery, getQuestionStatsQueryOptions, useAttemptQuery } from '../hooks/quizQueries';
+import { useCreateTestMutation, useUpdateTestMutation, useDeleteTestMutation, useToggleTestStatusMutation, useStartAttemptMutation, useSubmitResultMutation } from '../hooks/quizMutations';
 import { supabase } from '../lib/supabase';
 import { useUser } from '@clerk/clerk-react';
 import { getCachedUUIDFromClerkId, ensureUserProfile } from '../lib/clerkUtils';
 import { useQueryClient } from '@tanstack/react-query';
-import { getQuestionStatsQueryOptions } from '../hooks/quizQueries';
-import { useAttemptQuery } from '../hooks/quizQueries';
 
 // Legacy interface for backward compatibility
 export interface LegacyQuestion {
