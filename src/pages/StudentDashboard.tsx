@@ -119,10 +119,10 @@ function StudentDashboard() {
               )}
             </button>
             <SignedIn>
-              <UserButton afterSignOutUrl="/" />
+              <UserButton afterSignOutUrl="/#/" />
             </SignedIn>
             <SignedOut>
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" fallbackRedirectUrl="/#/student">
                 <button className="btn-primary">Sign In</button>
               </SignInButton>
             </SignedOut>

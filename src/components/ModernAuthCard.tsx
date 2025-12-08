@@ -153,8 +153,8 @@ export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({
                         socialButtonsVariant: 'blockButton'
                       }
                     }}
-                    fallbackRedirectUrl="/dashboard"
-                    forceRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/#/dashboard"
+                    forceRedirectUrl="/#/dashboard"
                   />
                 ) : (
                   <SignUp
@@ -185,8 +185,8 @@ export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({
                         socialButtonsVariant: 'blockButton'
                       }
                     }}
-                    fallbackRedirectUrl="/dashboard"
-                    forceRedirectUrl="/dashboard"
+                    fallbackRedirectUrl="/#/dashboard"
+                    forceRedirectUrl="/#/dashboard"
                   />
                 )}
               </div>

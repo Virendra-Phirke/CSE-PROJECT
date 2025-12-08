@@ -197,11 +197,11 @@ function AppHeader() {
         <div className="flex items-center gap-4">
           <SignedIn>
             <a href={dashboardPath} className="hidden sm:inline-block bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Go to Dashboard</a>
-            <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonPopoverCard: 'bg-[#111827] border border-white/10 backdrop-blur-xl' } }} />
+            <UserButton afterSignOutUrl="/#/" appearance={{ elements: { userButtonPopoverCard: 'bg-[#111827] border border-white/10 backdrop-blur-xl' } }} />
           </SignedIn>
           <SignedOut>
             <a href="/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Get Started</a>
-            <SignInButton />
+            <SignInButton mode="modal" fallbackRedirectUrl="/#/dashboard" />
           </SignedOut>
         </div>
       </div>

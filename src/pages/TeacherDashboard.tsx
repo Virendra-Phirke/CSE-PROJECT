@@ -191,10 +191,10 @@ function TeacherDashboard() {
               )}
             </button>
             <SignedIn>
-              <UserButton afterSignOutUrl="/" />
+              <UserButton afterSignOutUrl="/#/" />
             </SignedIn>
             <SignedOut>
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" fallbackRedirectUrl="/#/teacher">
                 <button className="btn-primary">Sign In</button>
               </SignInButton>
             </SignedOut>
