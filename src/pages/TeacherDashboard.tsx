@@ -261,20 +261,29 @@ function TeacherDashboard() {
                 Create New Test
               </Link>
               
-              <div className="flex items-center justify-center p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl">
+              <Link
+                to="/teacher/analytics"
+                className="flex items-center justify-center p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:-translate-y-1 hover:shadow-lg"
+              >
                 <BarChart3 className="h-6 w-6 mr-2" />
                 View Analytics
-              </div>
+              </Link>
               
-              <div className="flex items-center justify-center p-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl">
+              <Link
+                to="/teacher/students"
+                className="flex items-center justify-center p-6 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all transform hover:-translate-y-1 hover:shadow-lg"
+              >
                 <Users className="h-6 w-6 mr-2" />
                 Manage Students
-              </div>
+              </Link>
               
-              <div className="flex items-center justify-center p-6 bg-gradient-to-r from-accent-purple-500 to-accent-purple-600 text-white rounded-xl">
+              <Link
+                to="/teacher/question-bank"
+                className="flex items-center justify-center p-6 bg-gradient-to-r from-accent-purple-500 to-accent-purple-600 text-white rounded-xl hover:from-accent-purple-600 hover:to-accent-purple-700 transition-all transform hover:-translate-y-1 hover:shadow-lg"
+              >
                 <BookOpen className="h-6 w-6 mr-2" />
                 Question Bank
-              </div>
+              </Link>
             </div>
           </div>
         </div>

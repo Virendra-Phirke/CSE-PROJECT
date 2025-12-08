@@ -13,6 +13,9 @@ import TestCreation from './pages/TestCreation';
 import EditTest from './pages/EditTest';
 import TakeTest from './pages/TakeTest';
 import TestResults from './pages/TestResults';
+import AnalyticsPage from './pages/AnalyticsPage';
+import ManageStudentsPage from './pages/ManageStudentsPage';
+import QuestionBankPage from './pages/QuestionBankPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import RoleSetup from './components/RoleSetup';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -76,6 +79,36 @@ function AppRoutes() {
         element={
           user ? (
             userRole === 'teacher' ? <EditTest /> : <Navigate to="/setup-role" />
+          ) : (
+            <Navigate to="/login" />
+          )
+        } 
+      />
+      <Route 
+        path="/teacher/analytics" 
+        element={
+          user ? (
+            userRole === 'teacher' ? <AnalyticsPage /> : <Navigate to="/setup-role" />
+          ) : (
+            <Navigate to="/login" />
+          )
+        } 
+      />
+      <Route 
+        path="/teacher/students" 
+        element={
+          user ? (
+            userRole === 'teacher' ? <ManageStudentsPage /> : <Navigate to="/setup-role" />
+          ) : (
+            <Navigate to="/login" />
+          )
+        } 
+      />
+      <Route 
+        path="/teacher/question-bank" 
+        element={
+          user ? (
+            userRole === 'teacher' ? <QuestionBankPage /> : <Navigate to="/setup-role" />
           ) : (
             <Navigate to="/login" />
           )
