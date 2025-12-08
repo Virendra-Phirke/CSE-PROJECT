@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useUser, SignedIn, UserButton, SignInButton, SignedOut } from '@clerk/clerk-react';
+import { useUser, SignedIn, UserButton, SignedOut } from '@clerk/clerk-react';
 import { TestProvider } from './contexts/TestContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingProvider } from './contexts/LoadingContext';
@@ -207,7 +207,7 @@ function AppHeader() {
           </SignedIn>
           <SignedOut>
             <a href="/#/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Get Started</a>
-            <SignInButton mode="modal" fallbackRedirectUrl="/#/login" />
+            <a href="/#/login" className="text-gray-300 hover:text-pink-400 transition-colors font-medium">Sign in</a>
           </SignedOut>
         </div>
       </div>
