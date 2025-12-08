@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useUser, SignedIn, UserButton, SignInButton, SignedOut } from '@clerk/clerk-react';
 import { TestProvider } from './contexts/TestContext';
 import { ThemeProvider } from './contexts/ThemeContext';
