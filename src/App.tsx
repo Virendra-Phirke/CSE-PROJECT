@@ -42,7 +42,13 @@ function AppRoutes() {
       <Route 
         path="/login" 
         element={
-          user ? <Navigate to="/" /> : <LoginPage />
+          user ? (
+            userRole ? (
+              userRole === 'teacher' ? <Navigate to="/teacher" replace /> : <Navigate to="/student" replace />
+            ) : (
+              <Navigate to="/setup-role" replace />
+            )
+          ) : <LoginPage />
         } 
       />
       
@@ -200,8 +206,8 @@ function AppHeader() {
             <UserButton afterSignOutUrl="/#/" appearance={{ elements: { userButtonPopoverCard: 'bg-[#111827] border border-white/10 backdrop-blur-xl' } }} />
           </SignedIn>
           <SignedOut>
-            <a href="/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Get Started</a>
-            <SignInButton mode="modal" fallbackRedirectUrl="/#/dashboard" />
+            <a href="/#/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Get Started</a>
+            <SignInButton mode="modal" fallbackRedirectUrl="/#/login" />
           </SignedOut>
         </div>
       </div>
