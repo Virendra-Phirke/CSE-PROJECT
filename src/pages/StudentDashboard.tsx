@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser, UserButton, SignedIn, SignedOut, SignInButton } from '@clerk/clerk-react';
+import { useUser, UserButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import { useTheme } from '../hooks/useTheme';
@@ -122,9 +122,7 @@ function StudentDashboard() {
               <UserButton afterSignOutUrl="/#/" />
             </SignedIn>
             <SignedOut>
-              <SignInButton mode="modal" fallbackRedirectUrl="/#/student">
-                <button className="btn-primary">Sign In</button>
-              </SignInButton>
+              <a href="/#/login" className="btn-primary">Sign In</a>
             </SignedOut>
           </div>
         </div>
