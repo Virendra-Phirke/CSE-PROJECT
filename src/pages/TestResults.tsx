@@ -6,6 +6,7 @@ import { useTestQuery, useResultsQuery } from '../hooks/quizQueries';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import { ArrowLeft, CheckCircle, XCircle, Clock, Trophy } from 'lucide-react';
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
+import { canonicalizeRole } from '../lib/roleUtils';
 import { Skeleton, CardSkeleton } from '../components/Skeleton';
 
 function TestResults() {
@@ -141,7 +142,7 @@ function TestResults() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
             <Link
-              to={(user?.unsafeMetadata?.role as string) === 'teacher' ? '/teacher' : '/student'}
+              to={canonicalizeRole(user?.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
               className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />

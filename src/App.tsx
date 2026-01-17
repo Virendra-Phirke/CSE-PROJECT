@@ -21,6 +21,7 @@ import RoleSetup from './components/RoleSetup';
 import ErrorBoundary from './components/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import UserProfilePage from './pages/UserProfilePage';
+import { canonicalizeRole } from './lib/roleUtils';
 
 const queryClient = new QueryClient();
 
@@ -31,8 +32,8 @@ function AppRoutes() {
     return <LoadingSpinner />;
   }
 
-  // Get user role from Clerk user metadata
-  const userRole = user?.unsafeMetadata?.role as string;
+  // Get user role from Clerk user metadata (normalized)
+  const userRole = canonicalizeRole(user?.unsafeMetadata?.role as string | undefined);
 
   return (
     <Routes>
@@ -184,7 +185,7 @@ function AppHeader() {
   if (hide) return null;
 
   // Determine dashboard route for CTA
-  const role = user?.unsafeMetadata?.role as string | undefined;
+  const role = canonicalizeRole(user?.unsafeMetadata?.role as string | undefined);
   const dashboardPath = role === 'teacher' ? '/teacher' : role === 'student' ? '/student' : '/setup-role';
 
   return (

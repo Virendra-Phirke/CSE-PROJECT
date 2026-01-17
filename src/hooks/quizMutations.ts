@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useUser } from '@clerk/clerk-react';
 import { ensureUserProfile, getCachedUUIDFromClerkId } from '../lib/clerkUtils';
+import { canonicalizeRole } from '../lib/roleUtils';
 import type { LegacyTest } from '../contexts/TestContext';
 import type { AttemptState } from './quizQueries';
 
 // Utility ensures role & returns UUID
 async function prep(user: ReturnType<typeof useUser>['user']) {
   if (!user) throw new Error('Not authenticated');
-  const role = (user.unsafeMetadata?.role as string) || 'student';
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
   await ensureUserProfile(user, role as 'teacher' | 'student');
   const userUUID = await getCachedUUIDFromClerkId(user.id);
   return { role, userUUID };
@@ -216,10 +217,10 @@ export function useStartAttemptMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ testId }: { testId: string }) => {
-      if (!user) throw new Error('Not authenticated');
-      const role = (user.unsafeMetadata?.role as string) || 'student';
-      if (role !== 'student') throw new Error('Only students can start attempts');
-      await ensureUserProfile(user, role as 'teacher' | 'student');
+  if (!user) throw new Error('Not authenticated');
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
+  if (role !== 'student') throw new Error('Only students can start attempts');
+  await ensureUserProfile(user, role as 'teacher' | 'student');
       const userUUID = await getCachedUUIDFromClerkId(user.id);
       const { data, error } = await supabase.rpc('start_test_attempt', { p_test_id: testId, p_student_id: userUUID });
       if (error) throw error;
@@ -246,9 +247,9 @@ export function useSubmitResultMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ testId, answers }: { testId: string; answers: number[] }) => {
-      if (!user) throw new Error('Not authenticated');
-      const role = (user.unsafeMetadata?.role as string) || 'student';
-      await ensureUserProfile(user, role as 'teacher' | 'student');
+  if (!user) throw new Error('Not authenticated');
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
+  await ensureUserProfile(user, role as 'teacher' | 'student');
       const userUUID = await getCachedUUIDFromClerkId(user.id);
       const { data, error } = await supabase.rpc('submit_test_result', { p_test_id: testId, p_student_id: userUUID, p_answers: answers });
       if (error) throw error;

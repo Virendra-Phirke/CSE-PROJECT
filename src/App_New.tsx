@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
+import { canonicalizeRole } from './lib/roleUtils';
 import { TestProvider } from './contexts/TestContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import LoginPage from './pages/LoginPage';
@@ -18,8 +19,8 @@ function AppRoutes() {
     return <LoadingSpinner />;
   }
 
-  // Get user role from Clerk user metadata
-  const userRole = user?.unsafeMetadata?.role as string;
+  // Get user role from Clerk user metadata (normalized)
+  const userRole = canonicalizeRole(user?.unsafeMetadata?.role as string | undefined);
 
   // Debug: Log user info
   console.log('User:', user);
@@ -92,7 +93,7 @@ function AppRoutes() {
       <Route 
         path="/" 
         element={
-          user ? (
+            user ? (
             userRole === 'teacher' ? <Navigate to="/teacher" /> :
             userRole === 'student' ? <Navigate to="/student" /> :
             <Navigate to="/setup-role" />

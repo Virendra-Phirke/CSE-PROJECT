@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import { canonicalizeRole } from '../lib/roleUtils';
 import { 
   Brain, 
   BarChart3, 
@@ -68,7 +69,7 @@ function LandingPage() {
           </p>
           {user ? (
             <Link 
-              to={user.unsafeMetadata?.role === 'teacher' ? '/teacher' : '/student'}
+              to={canonicalizeRole(user.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
               className="inline-block bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xl px-8 py-4 rounded-full font-bold hover:shadow-2xl transform hover:-translate-y-2 transition-all animate-fade-in-up delay-400"
             >
               Continue Learning

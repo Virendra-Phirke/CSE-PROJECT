@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { ModernAuthCard } from '../components/ModernAuthCard';
+import { canonicalizeRole } from '../lib/roleUtils';
 
 function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,7 +24,7 @@ function LoginPage() {
 
   // If user is already signed in, redirect to appropriate destination
   if (user) {
-    const userRole = user.unsafeMetadata?.role as string;
+    const userRole = canonicalizeRole(user.unsafeMetadata?.role as string | undefined);
     if (userRole) {
       // If there's a return URL and user has a role, go there; otherwise go to dashboard
       if (returnTo) {

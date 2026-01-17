@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useTestQuery, useAttemptQuery } from '../hooks/quizQueries';
+import { canonicalizeRole } from '../lib/roleUtils';
 import { useStartAttemptMutation, useSubmitResultMutation } from '../hooks/quizMutations';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest } from '../contexts/TestContext';
@@ -56,7 +57,7 @@ function TakeTest() {
 
   // Check if user needs authentication or role setup
   const needsAuth = !isLoaded || !user;
-  const needsRole = user && !user.unsafeMetadata?.role;
+  const needsRole = !!user && !canonicalizeRole(user.unsafeMetadata?.role as string | undefined);
 
   // Handle role setup for authenticated users without a role
   const handleRoleSetup = async (selectedRole: 'teacher' | 'student') => {

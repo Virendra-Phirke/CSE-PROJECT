@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/clerk-react';
+import { canonicalizeRole } from '../lib/roleUtils';
 
 function DebugInfo() {
   const { user, isLoaded } = useUser();
@@ -13,7 +14,7 @@ function DebugInfo() {
       {user && (
         <>
           <div>Name: {user.firstName} {user.lastName}</div>
-          <div>Role: {user.unsafeMetadata?.role as string || 'No Role'}</div>
+          <div>Role: {canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'No Role'}</div>
           <div>ID: {user.id}</div>
         </>
       )}

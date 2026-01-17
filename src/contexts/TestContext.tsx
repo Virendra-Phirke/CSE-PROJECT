@@ -4,6 +4,7 @@ import { useCreateTestMutation, useUpdateTestMutation, useDeleteTestMutation, us
 import { supabase } from '../lib/supabase';
 import { useUser } from '@clerk/clerk-react';
 import { getCachedUUIDFromClerkId, ensureUserProfile } from '../lib/clerkUtils';
+import { canonicalizeRole } from '../lib/roleUtils';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Legacy interface for backward compatibility
@@ -124,8 +125,8 @@ export function TestProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     try {
-      const userRole = (user.unsafeMetadata?.role as string) || 'student';
-      await ensureUserProfile(user, userRole as 'teacher' | 'student');
+  const userRole = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
+  await ensureUserProfile(user, userRole as 'teacher' | 'student');
       const userUUID = await getCachedUUIDFromClerkId(user.id);
 
       const { error } = await supabase
@@ -179,9 +180,9 @@ export function TestProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    if (!user) return;
-    const role = user.unsafeMetadata?.role as string | undefined;
-    if (role !== 'teacher') return;
+  if (!user) return;
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined);
+  if (role !== 'teacher') return;
 
     let isCancelled = false;
     (async () => {

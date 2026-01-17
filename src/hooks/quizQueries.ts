@@ -2,6 +2,7 @@ import { useQuery, QueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useUser } from '@clerk/clerk-react';
 import { getCachedUUIDFromClerkId, ensureUserProfile } from '../lib/clerkUtils';
+import { canonicalizeRole } from '../lib/roleUtils';
 import type { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import type { Question } from '../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ interface ResultRow {
 // Helper to convert DB test -> LegacyTest shape
 async function fetchTests(user: ReturnType<typeof useUser>['user']): Promise<LegacyTest[]> {
   if (!user) return [];
-  const role = (user.unsafeMetadata?.role as string) || 'student';
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
   await ensureUserProfile(user, role as 'teacher' | 'student');
 
   let query = supabase
@@ -51,7 +52,7 @@ async function fetchTests(user: ReturnType<typeof useUser>['user']): Promise<Leg
 
 async function fetchResults(user: ReturnType<typeof useUser>['user'], tests: LegacyTest[] | undefined): Promise<LegacyTestResult[]> {
   if (!user) return [];
-  const role = (user.unsafeMetadata?.role as string) || 'student';
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
   const userUUID = await getCachedUUIDFromClerkId(user.id);
   let query = supabase
     .from('test_results')
@@ -152,7 +153,7 @@ export function useQuestionStatsQuery(testId: string | undefined, enabled: boole
 
 async function fetchSingleTest(user: ReturnType<typeof useUser>['user'], testId: string): Promise<LegacyTest | undefined> {
   if (!user) return undefined;
-  const role = (user.unsafeMetadata?.role as string) || 'student';
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
   await ensureUserProfile(user, role as 'teacher' | 'student');
   const query = supabase
     .from('tests')
@@ -213,7 +214,7 @@ export interface AttemptState {
 
 async function fetchAttempt(user: ReturnType<typeof useUser>['user'], testId: string): Promise<AttemptState | undefined> {
   if (!user) return undefined;
-  const role = (user.unsafeMetadata?.role as string) || 'student';
+  const role = canonicalizeRole(user.unsafeMetadata?.role as string | undefined) || 'student';
   await ensureUserProfile(user, role as 'teacher' | 'student');
   const userUUID = await getCachedUUIDFromClerkId(user.id);
   const { data, error } = await supabase
@@ -243,7 +244,7 @@ export function useAttemptQuery(testId: string | undefined) {
   return useQuery<AttemptState | undefined>({
     queryKey: ['attempt', testId, user?.id],
     queryFn: () => fetchAttempt(user, testId as string),
-    enabled: !!user && !!testId && (user.unsafeMetadata?.role === 'student'),
+    enabled: !!user && !!testId && (canonicalizeRole(user.unsafeMetadata?.role as string | undefined) === 'student'),
     staleTime: 5_000 // keep relatively fresh for timing
   });
 }
