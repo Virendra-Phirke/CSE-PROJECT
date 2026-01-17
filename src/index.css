@@ -587,3 +587,20 @@
 
 /* Restored utilities & close block */
 }
+
+/* Spinner: slow spin utility for a more professional feel */
+@layer utilities {
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 1.6s cubic-bezier(.4,.0,.2,1) infinite;
+  }
+
+  /* When spinner is present, keep it visually minimal on top of content */
+  .spinner-backdrop-none {
+    background: transparent !important;
+  }
+}
