@@ -54,6 +54,7 @@ function TakeTest() {
   const currentQuestionRef = useRef(0); // Track current question for stable reference
   const totalTestTimerRef = useRef<NodeJS.Timeout | null>(null); // Track main test timer
   const totalTestTimerStarted = useRef(false); // Track if main timer has started
+  const timerRunningRef = useRef(false); // Track if question timer is currently running
   
   // Track time remaining for each question individually
   const questionTimesRef = useRef<Record<number, number>>({}); // Store remaining time per question
@@ -347,29 +348,26 @@ function TakeTest() {
     
     // Update last question tracker
     lastQuestionRef.current = currentQuestion;
-  }, [currentQuestion, testStarted, displayQuestions.length]);
+  }, [currentQuestion, testStarted, displayQuestions.length, questionTimeLeft]);
 
-  // Per-question timer effect - single stable interval
+  // Per-question timer effect - single stable interval that runs continuously
   useEffect(() => {
-    if (!testStarted) return;
+    if (!testStarted || !questionTimerInitialized.current) return;
     
-    // Clear any existing timer
-    if (questionTimerRef.current) {
-      clearInterval(questionTimerRef.current);
-      questionTimerRef.current = null;
-    }
-
-    // Only start timer if we have time left
-    if (questionTimeLeft <= 0) return;
+    // Only create one timer for the entire test
+    if (timerRunningRef.current) return;
+    
+    timerRunningRef.current = true;
     
     // Create a stable interval that runs every second
     questionTimerRef.current = setInterval(() => {
-      setQuestionTimeLeft(prev => {
-        const newValue = prev - 1;
-        
-        // Update the stored time for current question
-        const currentQ = currentQuestionRef.current;
-        questionTimesRef.current[currentQ] = Math.max(0, newValue);
+      const currentQ = currentQuestionRef.current;
+      const currentTime = questionTimesRef.current[currentQ];
+      
+      if (currentTime !== undefined && currentTime > 0) {
+        const newValue = currentTime - 1;
+        questionTimesRef.current[currentQ] = newValue;
+        setQuestionTimeLeft(newValue);
         
         if (newValue <= 0) {
           // Time's up for this question
@@ -383,11 +381,8 @@ function TakeTest() {
           if (currentQ < displayQuestions.length - 1) {
             setCurrentQuestion(currentQ + 1);
           }
-          
-          return 0;
         }
-        return newValue;
-      });
+      }
     }, 1000);
 
     return () => {
@@ -395,8 +390,9 @@ function TakeTest() {
         clearInterval(questionTimerRef.current);
         questionTimerRef.current = null;
       }
+      timerRunningRef.current = false;
     };
-  }, [testStarted, currentQuestion, displayQuestions.length]);
+  }, [testStarted, displayQuestions.length]);
 
   // Auto-submit safeguard: periodic backup submission
   useEffect(() => {
