@@ -29,6 +29,7 @@ export function useCreateTestMutation() {
           title: testData.title,
           description: testData.description,
           duration: testData.duration,
+          time_per_question: testData.timePerQuestion, // Store exact time per question
           start_date: testData.startDate,
           end_date: testData.endDate,
           is_active: testData.isActive,
@@ -73,6 +74,7 @@ export function useUpdateTestMutation() {
           title: data.title,
           description: data.description,
           duration: data.duration,
+          time_per_question: data.timePerQuestion, // Store exact time per question
           start_date: data.startDate,
           end_date: data.endDate,
           is_active: data.isActive

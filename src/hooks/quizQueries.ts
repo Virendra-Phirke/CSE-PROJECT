@@ -8,7 +8,7 @@ import type { Question } from '../lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface TestRow {
-  id: string; title: string; description: string; duration: number; created_by: string; start_date: string; end_date: string; is_active: boolean; questions: Question[];
+  id: string; title: string; description: string; duration: number; time_per_question?: number; created_by: string; start_date: string; end_date: string; is_active: boolean; questions: Question[];
 }
 interface ResultRow {
   id: string; test_id: string; student_id: string; score: number; total_questions: number; time_taken: number; answers: number[]; completed_at: string; student?: { name?: string } | null;
@@ -34,6 +34,7 @@ async function fetchTests(user: ReturnType<typeof useUser>['user']): Promise<Leg
     title: test.title,
     description: test.description,
     duration: test.duration,
+    timePerQuestion: test.time_per_question, // Read exact time per question from database
     createdBy: test.created_by,
     startDate: test.start_date,
     endDate: test.end_date,
@@ -172,6 +173,7 @@ async function fetchSingleTest(user: ReturnType<typeof useUser>['user'], testId:
     title: test.title,
     description: test.description,
     duration: test.duration,
+    timePerQuestion: test.time_per_question, // Read exact time per question from database
     createdBy: test.created_by,
     startDate: test.start_date,
     endDate: test.end_date,
