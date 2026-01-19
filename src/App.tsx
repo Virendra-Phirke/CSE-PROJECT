@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { useUser, SignedIn, UserButton, SignedOut } from '@clerk/clerk-react';
 import { TestProvider } from './contexts/TestContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { useToast } from './components/ui/Toast';
 import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
+import AuthPage from './pages/AuthPage';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import TestCreation from './pages/TestCreation';
@@ -38,26 +38,20 @@ function AppRoutes() {
   return (
     <Routes>
       {/* User profile */}
-      <Route path="/user" element={user ? <UserProfilePage /> : <Navigate to="/login" />} />
+  <Route path="/user" element={user ? <UserProfilePage /> : <Navigate to="/auth/signin" />} />
       
-      <Route 
-        path="/login" 
-        element={
-          user ? (
-            userRole ? (
-              userRole === 'teacher' ? <Navigate to="/teacher" replace /> : <Navigate to="/student" replace />
-            ) : (
-              <Navigate to="/setup-role" replace />
-            )
-          ) : <LoginPage />
-        } 
-      />
+      {/* Legacy /login still supported - render auth page (signin) */}
+      <Route path="/login" element={<AuthPage defaultMode="signin" />} />
+
+      {/* New canonical auth routes */}
+      <Route path="/auth" element={<Navigate to="/auth/signin" replace />} />
+      <Route path="/auth/:mode" element={<AuthPage />} />
       
       {/* Add a route for role setup */}
       <Route 
         path="/setup-role" 
         element={
-          user ? <RoleSetup /> : <Navigate to="/login" />
+          user ? <RoleSetup /> : <Navigate to="/auth/signin" />
         } 
       />
       
@@ -67,7 +61,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <TeacherDashboard /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -77,7 +71,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <TestCreation /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -87,7 +81,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <EditTest /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -97,7 +91,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <AnalyticsPage /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -107,7 +101,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <ManageStudentsPage /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -117,7 +111,7 @@ function AppRoutes() {
           user ? (
             userRole === 'teacher' ? <QuestionBankPage /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -127,18 +121,18 @@ function AppRoutes() {
           user ? (
             userRole === 'student' ? <StudentDashboard /> : <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
       <Route 
         path="/test/:testId" 
-        element={user ? <TakeTest /> : <Navigate to="/login" state={{ returnTo: window.location.pathname }} />}
+        element={user ? <TakeTest /> : <Navigate to="/auth/signin" state={{ returnTo: window.location.pathname }} />}
       />
       <Route 
         path="/results/:testId" 
         element={
-          user ? <TestResults /> : <Navigate to="/login" />
+          user ? <TestResults /> : <Navigate to="/auth/signin" />
         } 
       />
       
@@ -157,7 +151,7 @@ function AppRoutes() {
             userRole === 'student' ? <Navigate to="/student" /> :
             <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />
@@ -201,14 +195,41 @@ function AppHeader() {
           <a href="/#features" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Features<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
           <a href="/#contact" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Contact<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <SignedIn>
-            <a href={dashboardPath} className="hidden sm:inline-block bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Go to Dashboard</a>
-            <UserButton afterSignOutUrl="/#/" appearance={{ elements: { userButtonPopoverCard: 'bg-[#111827] border border-white/10 backdrop-blur-xl' } }} />
+            <Link 
+              to={dashboardPath} 
+              className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg hover:brightness-110 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="hidden md:inline">Dashboard</span>
+            </Link>
+            <div className="flex items-center">
+              <UserButton 
+                afterSignOutUrl="/#/" 
+                appearance={{ 
+                  elements: { 
+                    userButtonBox: 'flex items-center',
+                    userButtonTrigger: 'focus:shadow-none hover:opacity-80 transition-opacity',
+                    avatarBox: 'w-10 h-10',
+                    userButtonPopoverCard: 'bg-slate-800 border border-slate-700 shadow-2xl',
+                    userButtonPopoverActions: 'bg-slate-800',
+                    userButtonPopoverActionButton: 'text-gray-200 hover:bg-slate-700 transition-colors',
+                    userButtonPopoverActionButtonText: 'text-gray-200',
+                    userButtonPopoverFooter: 'bg-slate-900 border-t border-slate-700',
+                    userPreview: 'bg-slate-800',
+                    userPreviewMainIdentifier: 'text-white font-semibold',
+                    userPreviewSecondaryIdentifier: 'text-gray-400'
+                  } 
+                }} 
+              />
+            </div>
           </SignedIn>
           <SignedOut>
-            <a href="/#/login" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all">Get Started</a>
-            <a href="/#/login" className="text-gray-300 hover:text-pink-400 transition-colors font-medium">Sign in</a>
+            <a href="/#/auth/signin" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg hover:brightness-110 transition-all">Get Started</a>
+            <a href="/#/auth/signin" className="text-gray-300 hover:text-pink-400 transition-colors font-medium">Sign in</a>
           </SignedOut>
         </div>
       </div>
@@ -226,7 +247,7 @@ function App() {
           <QueryClientProvider client={queryClient}>
             <TestProvider>
               <LoadingProvider>
-                <div className="min-h-screen bg-mesh-premium bg-[length:160%_160%] animate-gradient-shift dark:bg-[#0f0f12] text-gray-900 dark:text-gray-100 transition-colors duration-300 selection:bg-pink-500/80 selection:text-white">
+                <div className="min-h-screen bg-[#0f0f12] text-gray-100 transition-colors duration-300 selection:bg-pink-500/80 selection:text-white">
                   <ToastContainer />
                   <AppHeader />
                   <AppRoutes />

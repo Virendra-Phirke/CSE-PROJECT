@@ -11,7 +11,6 @@ import { ModernAuthCard } from '../components/ModernAuthCard';
 import { Skeleton } from '../components/Skeleton';
 import { useLoading } from '../hooks/useLoading';
 import { useToast } from '../components/ui/Toast';
-import confetti from 'canvas-confetti';
 
 // Auto-submit safeguard configuration
 const AUTO_SUBMIT_CONFIG = {
@@ -42,9 +41,14 @@ function TakeTest() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [testStarted, setTestStarted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  // authMode was previously used to toggle SignIn/SignUp UI; we now use Clerk's default SignIn only
   const [flagged, setFlagged] = useState<Record<number, boolean>>({});
   const progressBarRef = useRef<HTMLDivElement>(null);
+  
+  // Per-question timer system
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(0);
+  const [timedOutQuestions, setTimedOutQuestions] = useState<Set<number>>(new Set());
+  const [timePerQuestion, setTimePerQuestion] = useState(30); // Default 30 seconds
   
   // Use React Query for attempt state
   const attemptQuery = useAttemptQuery(testId);
@@ -140,6 +144,12 @@ function TakeTest() {
         remaining = Math.max(0, remaining - elapsed);
       }
       setTimeLeft(remaining);
+      
+      // Calculate time per question from total duration
+      const calculatedTimePerQuestion = Math.floor((test.duration * 60) / test.questions.length);
+      setTimePerQuestion(calculatedTimePerQuestion);
+      setQuestionTimeLeft(calculatedTimePerQuestion);
+      
       // answers length should match displayQuestions length (deferred until we know mapping)
     }
   }, [test, testStarted, attempt]);
@@ -181,12 +191,17 @@ function TakeTest() {
   const handleNext = useCallback(() => {
     if (displayQuestions.length && currentQuestion < displayQuestions.length - 1) {
       setCurrentQuestion(q => q + 1);
+      setQuestionTimeLeft(timePerQuestion); // Reset timer for next question
     }
-  }, [displayQuestions.length, currentQuestion]);
+  }, [displayQuestions.length, currentQuestion, timePerQuestion]);
 
   const handlePrevious = useCallback(() => {
-    setCurrentQuestion(q => (q > 0 ? q - 1 : q));
-  }, []);
+    // Prevent navigating back to timed-out questions
+    if (currentQuestion > 0 && !timedOutQuestions.has(currentQuestion - 1)) {
+      setCurrentQuestion(q => q - 1);
+      setQuestionTimeLeft(timePerQuestion); // Reset timer when navigating
+    }
+  }, [currentQuestion, timedOutQuestions, timePerQuestion]);
 
   // Repositioned keyboard navigation effect after handlers defined
   useEffect(() => {
@@ -200,8 +215,10 @@ function TakeTest() {
         handlePrevious();
       } else if (/^[1-9]$/.test(e.key)) {
         const idx = parseInt(e.key,10) - 1;
-        if (idx >= 0 && idx < displayQuestions.length) {
+        // Prevent navigating to timed-out questions
+        if (idx >= 0 && idx < displayQuestions.length && !timedOutQuestions.has(idx)) {
           setCurrentQuestion(idx);
+          setQuestionTimeLeft(timePerQuestion); // Reset timer when manually navigating
         }
       } else if (/^[a-dA-D]$/.test(e.key)) {
         const optionIdx = e.key.toLowerCase().charCodeAt(0) - 97; // a=0
@@ -215,7 +232,7 @@ function TakeTest() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [testStarted, displayQuestions, currentQuestion, getDisplayOptions, handleNext, handlePrevious, handleAnswerSelect]);
+  }, [testStarted, displayQuestions, currentQuestion, getDisplayOptions, handleNext, handlePrevious, handleAnswerSelect, timedOutQuestions, timePerQuestion]);
 
   const toggleFlag = () => setFlagged(f => ({ ...f, [currentQuestion]: !f[currentQuestion] }));
 
@@ -281,6 +298,34 @@ function TakeTest() {
       if (timer) clearInterval(timer);
     };
   }, [testStarted, timeLeft, handleSubmit]);
+
+  // Per-question timer effect - auto-advance when time runs out
+  useEffect(() => {
+    let questionTimer: NodeJS.Timeout;
+    
+    if (testStarted && questionTimeLeft > 0) {
+      questionTimer = setInterval(() => {
+        setQuestionTimeLeft(prev => {
+          if (prev <= 1) {
+            // Time's up for this question
+            setTimedOutQuestions(prevSet => new Set(prevSet).add(currentQuestion));
+            
+            // Auto-advance to next question if available
+            if (currentQuestion < displayQuestions.length - 1) {
+              setCurrentQuestion(q => q + 1);
+              return timePerQuestion; // Reset timer for next question
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (questionTimer) clearInterval(questionTimer);
+    };
+  }, [testStarted, questionTimeLeft, currentQuestion, displayQuestions.length, timePerQuestion]);
 
   // Auto-submit safeguard: periodic backup submission
   useEffect(() => {
@@ -399,12 +444,6 @@ function TakeTest() {
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   const isErrorWithMessage = (e: unknown): e is { message: string } => {
     return typeof e === 'object' && e !== null && 'message' in (e as Record<string, unknown>) && typeof (e as Record<string, unknown>).message === 'string';
   };
@@ -453,12 +492,7 @@ function TakeTest() {
   if (needsAuth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
-        <ModernAuthCard 
-          onRoleSelect={(role) => console.log('Role selected:', role)}
-          defaultRole="student"
-          mode={authMode}
-          onModeChange={setAuthMode}
-        />
+        <ModernAuthCard mode="signin" />
       </div>
     );
   }
@@ -644,7 +678,7 @@ function TakeTest() {
                       cy="50"
                     />
                     <circle
-                      className={`${timeLeft <= 300 ? 'text-rose-500' : 'text-purple-500'} timer-progress`}
+                      className={`${questionTimeLeft <= 10 ? 'text-rose-500' : questionTimeLeft <= 20 ? 'text-yellow-500' : 'text-purple-500'} timer-progress`}
                       stroke="currentColor"
                       strokeWidth="8"
                       strokeLinecap="round"
@@ -652,11 +686,18 @@ function TakeTest() {
                       r="45"
                       cx="50"
                       cy="50"
-                      data-progress={timeLeft / (test.duration * 60)}
+                      data-progress={questionTimeLeft / timePerQuestion}
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-800 dark:text-gray-100">
-                    {formatTime(timeLeft)}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className={`text-lg font-bold ${questionTimeLeft <= 10 ? 'text-rose-600' : 'text-gray-800 dark:text-gray-100'}`}>
+                        {questionTimeLeft}s
+                      </div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                        per Q
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -669,7 +710,7 @@ function TakeTest() {
             </div>
           </div>
           {/* Progress Bar */}
-          <div className="w-full h-2 mb-2 rounded-full bg-white/30 dark:bg-white/10 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={displayQuestions.length} aria-valuenow={answeredCount} aria-label="Answered questions progress">
+          <div className="w-full h-2 mb-2 rounded-full bg-white/30 dark:bg-white/10 overflow-hidden" role="progressbar" aria-label="Answered questions progress">
             <div
               ref={progressBarRef}
               className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 transition-all duration-500"
@@ -696,22 +737,32 @@ function TakeTest() {
                   {displayQuestions.map((_, index) => {
                     const answered = answers[index] !== -1;
                     const isFlagged = flagged[index];
+                    const isTimedOut = timedOutQuestions.has(index);
                     return (
                       <button
                         key={index}
-                        onClick={() => setCurrentQuestion(index)}
+                        onClick={() => {
+                          if (!isTimedOut) {
+                            setCurrentQuestion(index);
+                            setQuestionTimeLeft(timePerQuestion); // Reset timer when manually navigating
+                          }
+                        }}
+                        disabled={isTimedOut}
                         className={`relative w-10 h-10 rounded-xl text-xs font-semibold backdrop-blur-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-black ${
-                          index === currentQuestion
+                          isTimedOut
+                            ? 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40 cursor-not-allowed opacity-50'
+                            : index === currentQuestion
                             ? 'bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-glow'
                             : answered
                               ? 'bg-emerald-400/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/30'
                               : 'bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-400 border border-white/25 hover:bg-white/60 dark:hover:bg-white/15'
                         }`}
-                        aria-label={`Question ${index + 1}${isFlagged ? ' flagged' : ''}${answered ? ' answered' : ' not answered'}`}
+                        aria-label={`Question ${index + 1}${isFlagged ? ' flagged' : ''}${answered ? ' answered' : ' not answered'}${isTimedOut ? ' timed out' : ''}`}
                         aria-current={index === currentQuestion ? 'true' : 'false'}
                       >
                         {index + 1}
                         {isFlagged && <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full shadow" aria-hidden="true" />}
+                        {isTimedOut && <span className="absolute -bottom-1 -right-1 text-[8px]">🔒</span>}
                       </button>
                     );
                   })}
@@ -720,36 +771,55 @@ function TakeTest() {
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-md bg-emerald-400/30 border border-emerald-400/40" />Answered</span>
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-md bg-white/40 dark:bg-white/10 border border-white/25" />Unanswered</span>
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-400" />Flagged</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-md bg-red-500/30 border border-red-500/40" />Locked</span>
                 </div>
               </div>
 
               <div className="rounded-3xl border border-white/15 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-5 shadow-inner-glow">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Status</h3>
                 <div className="grid grid-cols-6 gap-2">
-                  {displayQuestions.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`relative flex items-center justify-center w-9 h-9 rounded-xl text-[11px] font-semibold ${
-                        answers[index] !== -1
-                          ? 'bg-emerald-400/20 text-emerald-600 dark:text-emerald-300'
-                          : 'bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-400'
-                      }`}
-                      aria-label={`Question ${index + 1} ${answers[index] !== -1 ? 'answered' : 'not answered'}${flagged[index] ? ' flagged' : ''}`}
-                    >
-                      {index + 1}
-                      {flagged[index] && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full" aria-hidden="true" />}
-                    </div>
-                  ))}
+                  {displayQuestions.map((_, index) => {
+                    const isTimedOut = timedOutQuestions.has(index);
+                    return (
+                      <div
+                        key={index}
+                        className={`relative flex items-center justify-center w-9 h-9 rounded-xl text-[11px] font-semibold ${
+                          isTimedOut
+                            ? 'bg-red-500/20 text-red-600 dark:text-red-300'
+                            : answers[index] !== -1
+                              ? 'bg-emerald-400/20 text-emerald-600 dark:text-emerald-300'
+                              : 'bg-white/40 dark:bg-white/10 text-gray-600 dark:text-gray-400'
+                        }`}
+                        aria-label={`Question ${index + 1} ${isTimedOut ? 'timed out' : answers[index] !== -1 ? 'answered' : 'not answered'}${flagged[index] ? ' flagged' : ''}`}
+                      >
+                        {index + 1}
+                        {flagged[index] && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full" aria-hidden="true" />}
+                        {isTimedOut && <span className="absolute -bottom-1 -right-1 text-[8px]">🔒</span>}
+                      </div>
+                    );
+                  })}
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-gray-400 mt-4 font-medium">
                   Answered: {answers.filter(answer => answer !== -1).length} / {displayQuestions.length}
                 </p>
+                {timedOutQuestions.size > 0 && (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 mt-2 font-medium">
+                    Locked: {timedOutQuestions.size}
+                  </p>
+                )}
               </div>
             </div>
           </aside>
 
           {/* Question & Answers */}
           <div className="xl:col-span-3 order-1 xl:order-2">
+            {questionTimeLeft <= 10 && questionTimeLeft > 0 && (
+              <div className="mb-4 rounded-2xl border border-red-300/50 bg-red-50/50 dark:bg-red-900/20 dark:border-red-700/40 backdrop-blur-xl p-4 animate-pulse">
+                <p className="text-sm font-semibold text-red-800 dark:text-red-300 text-center">
+                  ⏰ Only {questionTimeLeft} seconds left for this question!
+                </p>
+              </div>
+            )}
             <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-inner-glow px-6 md:px-10 py-10 transition-all">
               {/* Question */}
               <div className="mb-10">
@@ -792,7 +862,7 @@ function TakeTest() {
                 <div className="flex gap-3 w-full md:w-auto">
                   <button
                     onClick={handlePrevious}
-                    disabled={currentQuestion === 0}
+                    disabled={currentQuestion === 0 || (currentQuestion > 0 && timedOutQuestions.has(currentQuestion - 1))}
                     className="px-6 h-11 rounded-xl border border-white/25 bg-white/50 dark:bg-white/5 backdrop-blur-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-white/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Previous

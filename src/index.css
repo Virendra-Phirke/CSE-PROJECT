@@ -337,49 +337,178 @@
     100% { transform: translate(-150px, -150px); }
   }
 
-  /* Clerk Component Overrides */
-  .clerk-container .cl-card {
-    @apply bg-transparent shadow-none border-0;
-  }
-
-  .clerk-container .cl-formFieldInput {
-    @apply bg-gray-800/50 border-gray-600/50 text-white;
-  }
-
-  .clerk-container .cl-formFieldInput:focus {
-    @apply border-pink-500 bg-gray-700/60;
-  }
-
-  .clerk-container .cl-formButtonPrimary {
-    @apply bg-gradient-to-r from-pink-500 to-purple-600;
-  }
-
-  /* Ensure Clerk components are visible and properly styled */
-  .clerk-container {
-    width: 100%;
-    min-height: 300px;
-    display: block !important;
-    position: relative;
-  }
-
-  .clerk-container > div {
-    width: 100%;
-    display: block !important;
-  }
-
-  .clerk-container [data-clerk-component] {
-    width: 100% !important;
-    display: block !important;
-    min-height: 200px;
-  }
-
-  /* Force visibility of Clerk forms */
+  /* Clerk Component Styling - Minimal overrides, let appearance prop handle most styling */
+  
+  /* Ensure Clerk components are visible */
   .cl-rootBox,
   .cl-card,
   .cl-main,
   .cl-form {
     display: block !important;
-    width: 100% !important;
+    visibility: visible !important;
+    width: 100%;
+  }
+
+  /* Remove Clerk's card styling since we provide our own container */
+  .cl-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ensure proper text contrast in dark mode */
+  .dark .cl-formFieldLabel,
+  .dark .cl-headerTitle,
+  .dark .cl-headerSubtitle,
+  .dark .cl-footerActionText {
+    color: #ffffff !important;
+  }
+
+  .dark .cl-formFieldInput {
+    background-color: #374151 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+  }
+
+  .dark .cl-dividerText {
+    color: #9ca3af !important;
+  }
+
+  /* Fix UserProfile modal - Dark theme styling */
+  .cl-userButtonPopoverCard,
+  .cl-modalContent,
+  .cl-modal,
+  .cl-userProfileSection,
+  .cl-internal-b3fm6y {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+  }
+
+  /* Profile page main content area - Dark theme */
+  .cl-profilePage__root,
+  .cl-page__root,
+  .cl-profileSection__root,
+  .cl-scrollBox,
+  div[class*="cl-internal"] {
+    background-color: #1e293b !important;
+  }
+
+  /* Modal header and sections - Dark theme */
+  .cl-modalContent__header,
+  .cl-profileSection__header,
+  .cl-card__header {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+  }
+
+  /* All text elements in profile - Dark theme */
+  .cl-profileSectionTitle,
+  .cl-profileSectionTitle__root,
+  .cl-profileSectionPrimaryButton,
+  .cl-profileSectionPrimaryButton__root,
+  .cl-formFieldLabel,
+  .cl-formFieldLabel__root,
+  .cl-accordionTriggerButton,
+  .cl-accordionTriggerButton__root,
+  .cl-profileSectionContent,
+  .cl-profileSectionContent__root,
+  .cl-formFieldLabelRow,
+  .cl-identityPreview,
+  .cl-identityPreviewText,
+  .cl-identityPreviewEditButton,
+  .cl-profileSectionItem__root,
+  .cl-profileSectionItem,
+  .cl-profileSectionItemValue {
+    color: #e5e7eb !important;
+    background: transparent !important;
+  }
+
+  /* Connected accounts section - Dark theme */
+  .cl-accordionContent,
+  .cl-accordionPanel {
+    background-color: #334155 !important;
+  }
+
+  /* Navbar in profile modal - Dark theme */
+  .cl-navbar,
+  .cl-navbar__root,
+  .cl-navbarButtons,
+  .cl-navbarButton {
+    background-color: #0f172a !important;
+    border-bottom: 1px solid #334155 !important;
+  }
+
+  .cl-navbarButton,
+  .cl-navbarButton__root {
+    color: #d1d5db !important;
+  }
+
+  .cl-navbarButton:hover {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+  }
+
+  /* Active navbar item - Dark theme */
+  .cl-navbarButton[data-active="true"],
+  .cl-navbarButton--active {
+    background-color: #334155 !important;
+    color: #a855f7 !important;
+    border-left: 3px solid #a855f7 !important;
+  }
+
+  /* Buttons in profile - Dark theme */
+  .cl-profileSectionPrimaryButton,
+  .cl-profileSectionPrimaryButton__root,
+  .cl-formButtonPrimary,
+  .cl-button[data-variant="primary"] {
+    background: linear-gradient(to right, #a855f7, #ec4899) !important;
+    color: white !important;
+    border: none !important;
+  }
+
+  /* Input fields - Dark theme */
+  .cl-formFieldInput,
+  .cl-formFieldInput__root,
+  .cl-input,
+  .cl-input__root {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border: 1px solid #475569 !important;
+  }
+
+  .cl-formFieldInput:focus,
+  .cl-input:focus {
+    border-color: #a855f7 !important;
+    outline: 2px solid #a855f7 !important;
+    outline-offset: 2px !important;
+    background-color: #334155 !important;
+  }
+
+  /* Badges - Dark theme */
+  .cl-badge,
+  .cl-badge__root {
+    background-color: #1e3a8a !important;
+    color: #93c5fd !important;
+    border: 1px solid #3b82f6 !important;
+  }
+
+  /* Remove any light overlays - force dark */
+  .cl-internal-1w8navb,
+  .cl-internal-b3fm6y,
+  div[class*="cl-internal"][class*="bg"] {
+    background: #1e293b !important;
+  }
+
+  /* Modal backdrop - semi-transparent dark */
+  .cl-modalBackdrop {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* Ensure all nested divs in profile inherit light bg */
+  .cl-userProfileSection div,
+  .cl-profilePage div,
+  .cl-modalContent div {
+    background-color: inherit;
   }
 }
 
@@ -597,6 +726,34 @@
 
   .animate-spin-slow {
     animation: spin-slow 1.6s cubic-bezier(.4,.0,.2,1) infinite;
+  }
+  
+  @keyframes bounce-slow {
+    0%, 100% { 
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% { 
+      transform: translateY(-10px);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+  
+  .animate-bounce-slow {
+    animation: bounce-slow 2s infinite;
+  }
+  
+  @keyframes pulse-soft {
+    0%, 100% { 
+      opacity: 1;
+    }
+    50% { 
+      opacity: 0.7;
+    }
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   /* When spinner is present, keep it visually minimal on top of content */

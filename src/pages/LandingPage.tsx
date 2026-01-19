@@ -76,7 +76,7 @@ function LandingPage() {
             </Link>
           ) : (
             <Link 
-              to="/login"
+              to="/auth/signin"
               className="inline-block bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xl px-8 py-4 rounded-full font-bold hover:shadow-2xl transform hover:-translate-y-2 transition-all animate-fade-in-up delay-400"
             >
               Start Your Journey

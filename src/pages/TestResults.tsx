@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { useTest } from '../hooks/useTest';
 import { useTestQuery, useResultsQuery } from '../hooks/quizQueries';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import { ArrowLeft, CheckCircle, XCircle, Clock, Trophy } from 'lucide-react';
@@ -12,7 +11,6 @@ import { Skeleton, CardSkeleton } from '../components/Skeleton';
 function TestResults() {
   const { testId } = useParams<{ testId: string }>();
   const { user } = useUser();
-  const { results } = useTest();
   const testQuery = useTestQuery(testId);
   const resultsQuery = useResultsQuery(testQuery.data ? [testQuery.data] : undefined);
   const loading = testQuery.isLoading || resultsQuery.isLoading;
@@ -35,8 +33,8 @@ function TestResults() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="min-h-screen bg-mesh-premium py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Header skeleton */}
           <div className="flex items-center space-x-4">
             <Skeleton className="h-6 w-32" />
@@ -47,11 +45,11 @@ function TestResults() {
           </div>
 
           {/* Score summary skeleton */}
-          <div className="rounded-xl p-8 bg-white shadow-sm border space-y-6">
+          <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl p-8 shadow-inner-glow space-y-6">
             <div className="text-center space-y-4">
-              <Skeleton className="h-16 w-16 mx-auto rounded-full" />
-              <Skeleton className="h-8 w-64 mx-auto" />
-              <Skeleton className="h-5 w-48 mx-auto" />
+              <Skeleton className="h-20 w-20 mx-auto rounded-full" />
+              <Skeleton className="h-10 w-80 mx-auto" />
+              <Skeleton className="h-6 w-56 mx-auto" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <CardSkeleton lines={2} />
@@ -61,14 +59,14 @@ function TestResults() {
           </div>
 
           {/* Question review skeleton */}
-          <div className="bg-white rounded-xl shadow-sm border p-6 space-y-6">
-            <Skeleton className="h-6 w-48" />
+          <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-inner-glow p-6 space-y-6">
+            <Skeleton className="h-8 w-64" />
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="border rounded-lg p-4 space-y-3">
-                <Skeleton className="h-5 w-3/4" />
-                <div className="space-y-2">
+              <div key={i} className="rounded-2xl border border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-md p-6 space-y-4">
+                <Skeleton className="h-6 w-3/4" />
+                <div className="space-y-3">
                   {Array.from({ length: 4 }).map((_, j) => (
-                    <Skeleton key={j} className="h-10 w-full rounded-lg" />
+                    <Skeleton key={j} className="h-12 w-full rounded-xl" />
                   ))}
                 </div>
               </div>
@@ -76,17 +74,17 @@ function TestResults() {
           </div>
 
           {/* Performance summary skeleton */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <Skeleton className="h-6 w-56 mb-4" />
+          <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-inner-glow p-6">
+            <Skeleton className="h-8 w-64 mb-6" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-4 w-full" />
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
                 ))}
               </div>
               <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-4 w-full" />
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full rounded-xl" />
                 ))}
               </div>
             </div>
@@ -98,10 +96,18 @@ function TestResults() {
 
   if (!test || !myResult) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Results Not Found</h1>
-          <p className="text-gray-600">Unable to find test results.</p>
+      <div className="min-h-screen bg-mesh-premium flex items-center justify-center p-4">
+        <div className="text-center rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-glow p-8 max-w-md">
+          <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Results Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-400">Unable to find test results.</p>
+          <Link
+            to={canonicalizeRole(user?.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold hover:brightness-110 transition-all"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            Back to Dashboard
+          </Link>
         </div>
       </div>
     );
@@ -128,85 +134,85 @@ function TestResults() {
     return 'text-red-600';
   };
 
-  const getScoreBg = (score: number) => {
-    if (score >= 90) return 'bg-green-100';
-    if (score >= 70) return 'bg-blue-100';
-    if (score >= 50) return 'bg-yellow-100';
-    return 'bg-red-100';
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-mesh-premium">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="backdrop-blur-xl bg-white/70 dark:bg-black/40 shadow-sm border-b border-white/20 sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
             <Link
               to={canonicalizeRole(user?.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
-              className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mr-4 transition-colors"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Test Results</h1>
-              <p className="text-gray-600">{test.title}</p>
+              <h1 className="text-2xl font-bold gradient-text">Test Results</h1>
+              <p className="text-gray-600 dark:text-gray-400">{test.title}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Score Summary */}
-        <div className={`${getScoreBg(myResult.score)} rounded-xl p-8 mb-8`}>
+        <div className="rounded-3xl border border-white/15 bg-gradient-to-br from-pink-50/80 to-purple-50/80 dark:from-pink-900/20 dark:to-purple-900/20 backdrop-blur-2xl shadow-glow p-8 md:p-12 mb-8">
           <div className="text-center">
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-6">
               {myResult.score >= 70 ? (
-                <Trophy className="h-16 w-16 text-yellow-500" />
+                <div className="relative">
+                  <Trophy className="h-20 w-20 text-yellow-500 drop-shadow-glow animate-bounce-slow" />
+                  <div className="absolute inset-0 bg-yellow-400/30 rounded-full blur-2xl animate-pulse-soft"></div>
+                </div>
               ) : (
-                <CheckCircle className="h-16 w-16 text-gray-500" />
+                <CheckCircle className="h-20 w-20 text-gray-400 dark:text-gray-500" />
               )}
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Your Score: <span className={getScoreColor(myResult.score)}>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">
+              Your Score: <span className={`${getScoreColor(myResult.score)} bg-gradient-to-r bg-clip-text text-transparent ${
+                myResult.score >= 90 ? 'from-green-500 to-emerald-600' :
+                myResult.score >= 70 ? 'from-blue-500 to-cyan-600' :
+                myResult.score >= 50 ? 'from-yellow-500 to-orange-600' :
+                'from-red-500 to-rose-600'
+              }`}>
                 {myResult.score.toFixed(1)}%
               </span>
             </h2>
-            <p className="text-xl text-gray-700">
+            <p className="text-xl text-gray-700 dark:text-gray-300 font-medium">
               {correctAnswers} out of {test.questions.length} correct
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="text-center">
-              <div className="bg-white rounded-lg p-4">
-                <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{formatTime(myResult.timeTaken)}</p>
-                <p className="text-sm text-gray-600">Time Taken</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-8">
+            <div className="rounded-2xl border border-white/25 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 text-center transform hover:scale-105 transition-transform">
+              <Clock className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{formatTime(myResult.timeTaken)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Time Taken</p>
             </div>
 
-            <div className="text-center">
-              <div className="bg-white rounded-lg p-4">
-                <Trophy className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">#{myRank}</p>
-                <p className="text-sm text-gray-600">Your Rank</p>
-              </div>
+            <div className="rounded-2xl border border-white/25 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 text-center transform hover:scale-105 transition-transform">
+              <Trophy className="h-10 w-10 text-purple-500 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">#{myRank}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Your Rank</p>
             </div>
 
-            <div className="text-center">
-              <div className="bg-white rounded-lg p-4">
-                <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900">{correctAnswers}</p>
-                <p className="text-sm text-gray-600">Correct Answers</p>
-              </div>
+            <div className="rounded-2xl border border-white/25 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 text-center transform hover:scale-105 transition-transform">
+              <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{correctAnswers}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Correct Answers</p>
             </div>
           </div>
         </div>
 
         {/* Question Review */}
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-6">Question Review</h3>
+        <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-inner-glow p-6 md:p-8 mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-glow text-sm font-bold">
+              Q
+            </span>
+            Question Review
+          </h3>
           
           <div className="space-y-6">
             {test.questions.map((question, index) => {
@@ -215,44 +221,58 @@ function TestResults() {
               const isCorrect = userAnswer === correctAnswer;
 
               return (
-                <div key={index} className="border border-gray-200 rounded-lg p-6">
+                <div key={index} className="rounded-2xl border border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-md p-6 transition-all hover:shadow-lg">
                   <div className="flex items-start justify-between mb-4">
-                    <h4 className="text-lg font-medium text-gray-900 flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white flex-1">
                       {index + 1}. {question.question}
                     </h4>
-                    <div className="ml-4">
+                    <div className="ml-4 shrink-0">
                       {isCorrect ? (
-                        <CheckCircle className="h-6 w-6 text-green-600" />
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <CheckCircle className="h-6 w-6" />
+                        </div>
                       ) : (
-                        <XCircle className="h-6 w-6 text-red-600" />
+                        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                          <XCircle className="h-6 w-6" />
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {question.options.map((option, optionIndex) => {
-                      let className = "p-3 rounded-lg border ";
+                      let className = "p-4 rounded-xl border-2 transition-all ";
                       
                       if (optionIndex === correctAnswer) {
-                        className += "border-green-500 bg-green-50 text-green-900";
+                        className += "border-green-400 bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-100 shadow-sm";
                       } else if (optionIndex === userAnswer && !isCorrect) {
-                        className += "border-red-500 bg-red-50 text-red-900";
+                        className += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-100 shadow-sm";
                       } else {
-                        className += "border-gray-200 bg-gray-50 text-gray-700";
+                        className += "border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 text-gray-700 dark:text-gray-300";
                       }
 
                       return (
                         <div key={optionIndex} className={className}>
                           <div className="flex items-center">
-                            <span className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-current mr-3 text-sm font-semibold">
+                            <span className={`flex items-center justify-center w-8 h-8 rounded-lg border-2 mr-3 text-sm font-bold ${
+                              optionIndex === correctAnswer 
+                                ? 'border-green-500 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-100'
+                                : optionIndex === userAnswer && !isCorrect
+                                ? 'border-red-500 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-100'
+                                : 'border-current bg-white/50 dark:bg-white/10'
+                            }`}>
                               {String.fromCharCode(65 + optionIndex)}
                             </span>
-                            <span>{option}</span>
+                            <span className="flex-1 font-medium">{option}</span>
                             {optionIndex === correctAnswer && (
-                              <span className="ml-auto text-xs font-medium">✓ Correct</span>
+                              <span className="ml-auto text-xs font-bold px-3 py-1 rounded-full bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100">
+                                ✓ Correct
+                              </span>
                             )}
                             {optionIndex === userAnswer && !isCorrect && (
-                              <span className="ml-auto text-xs font-medium">✗ Your Answer</span>
+                              <span className="ml-auto text-xs font-bold px-3 py-1 rounded-full bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-100">
+                                ✗ Your Answer
+                              </span>
                             )}
                           </div>
                         </div>
@@ -266,47 +286,58 @@ function TestResults() {
         </div>
 
         {/* Performance Summary */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Performance Summary</h3>
+        <div className="rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-inner-glow p-6 md:p-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-glow text-sm font-bold">
+              📊
+            </span>
+            Performance Summary
+          </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Score Breakdown</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Correct Answers:</span>
-                  <span className="font-semibold text-green-600">{correctAnswers}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="rounded-2xl border border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-md p-6">
+              <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                Score Breakdown
+              </h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Correct Answers:</span>
+                  <span className="font-bold text-lg text-green-600 dark:text-green-400">{correctAnswers}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Incorrect Answers:</span>
-                  <span className="font-semibold text-red-600">{test.questions.length - correctAnswers}</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Incorrect Answers:</span>
+                  <span className="font-bold text-lg text-red-600 dark:text-red-400">{test.questions.length - correctAnswers}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Accuracy:</span>
-                  <span className="font-semibold">{myResult.score.toFixed(1)}%</span>
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Accuracy:</span>
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">{myResult.score.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Class Performance</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Your Rank:</span>
-                  <span className="font-semibold">#{myRank} of {testResults.length}</span>
+            <div className="rounded-2xl border border-white/20 bg-white/40 dark:bg-white/5 backdrop-blur-md p-6">
+              <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-purple-500" />
+                Class Performance
+              </h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Your Rank:</span>
+                  <span className="font-bold text-lg text-purple-600 dark:text-purple-400">#{myRank} of {testResults.length}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Average Score:</span>
-                  <span className="font-semibold">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Average Score:</span>
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">
                     {testResults.length > 0 
                       ? (testResults.reduce((sum: number, r: LegacyTestResult) => sum + r.score, 0) / testResults.length).toFixed(1)
                       : '0.0'
                     }%
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Highest Score:</span>
-                  <span className="font-semibold">
+                <div className="flex justify-between items-center p-3 rounded-xl bg-white/60 dark:bg-white/5">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Highest Score:</span>
+                  <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                     {testResults.length > 0 ? Math.max(...testResults.map((r: LegacyTestResult) => r.score)).toFixed(1) : '0.0'}%
                   </span>
                 </div>

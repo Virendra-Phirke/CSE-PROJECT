@@ -18,11 +18,13 @@ function EditTest() {
   const [testData, setTestData] = useState({
     title: '',
     description: '',
-    duration: 30,
+    duration: 30, // This will be calculated based on questions
     startDate: new Date().toISOString().slice(0, 16),
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
     isActive: true
   });
+
+  const [timePerQuestion, setTimePerQuestion] = useState(30); // seconds per question
 
   const [questions, setQuestions] = useState<LegacyQuestion[]>([
     {
@@ -55,6 +57,12 @@ function EditTest() {
             correctAnswer: 0
           }
         ]);
+        
+        // Calculate time per question from existing duration
+        if (test.questions.length > 0) {
+          const calculatedTimePerQuestion = Math.floor((test.duration * 60) / test.questions.length);
+          setTimePerQuestion(calculatedTimePerQuestion);
+        }
       }
     }
   }, [testId, getTestById]);
@@ -141,20 +149,26 @@ function EditTest() {
     setLoading(true);
 
     try {
+      // Calculate total duration: (number of questions * seconds per question) / 60 to get minutes
+      const totalSeconds = questions.length * timePerQuestion;
+      const totalDurationMinutes = Math.ceil(totalSeconds / 60);
+      const displayMinutes = Math.floor(totalSeconds / 60);
+      const displaySeconds = totalSeconds % 60;
+      
       await updateTestMutation.mutateAsync({
         id: testId,
         data: {
           ...testData,
           questions,
           createdBy: user?.id || '',
-          duration: parseInt(testData.duration.toString())
+          duration: totalDurationMinutes
         }
       });
       
       addToast({
         type: 'success',
         title: 'Test Updated',
-        message: 'Your test has been updated successfully!'
+        message: `Your test has been updated successfully! Total time: ${displayMinutes}min ${displaySeconds}sec`
       });
       
       navigate('/teacher');
@@ -256,19 +270,39 @@ function EditTest() {
               </div>
 
               <div>
-                <label htmlFor="edit-duration" className="block text-sm font-medium text-gray-700 mb-2">
-                  Duration (minutes) *
+                <label htmlFor="time-per-question" className="block text-sm font-medium text-gray-700 mb-2">
+                  Time Limit per Question (seconds) *
                 </label>
                 <input
-                  id="edit-duration"
+                  id="time-per-question"
                   type="number"
-                  name="duration"
-                  value={testData.duration}
-                  onChange={handleTestDataChange}
-                  min="1"
+                  value={timePerQuestion}
+                  onChange={(e) => setTimePerQuestion(parseInt(e.target.value) || 30)}
+                  min="10"
+                  max="300"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   required
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  Recommended: 30-60 seconds per question
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Total Test Duration
+                </label>
+                <div className="w-full px-3 py-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg">
+                  {(() => {
+                    const totalSeconds = questions.length * timePerQuestion;
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    return `${minutes}min ${seconds}sec`;
+                  })()}
+                  <span className="text-gray-600 text-sm ml-2">
+                    ({questions.length} question{questions.length !== 1 ? 's' : ''} × {timePerQuestion}s)
+                  </span>
+                </div>
               </div>
 
               <div>

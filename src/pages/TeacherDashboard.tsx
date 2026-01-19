@@ -3,7 +3,6 @@ import { useUser, UserButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useTest } from '../hooks/useTest';
 import { useDeleteTestMutation, useToggleTestStatusMutation } from '../hooks/quizMutations';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
-import { useTheme } from '../hooks/useTheme';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
@@ -16,8 +15,6 @@ import {
   Eye, 
   EyeOff, 
   Share2, 
-  Moon, 
-  Sun,
   Copy,
   CheckCircle
 } from 'lucide-react';
@@ -29,7 +26,6 @@ import { useToast } from '../components/ui/Toast';
 
 function TeacherDashboard() {
   const { user } = useUser();
-  const { isDark, toggleTheme } = useTheme();
   const { tests: legacyTests, results: legacyResults } = useTest();
   const testsQuery = useTestsQuery();
   const resultsQuery = useResultsQuery(testsQuery.data);
@@ -180,21 +176,11 @@ function TeacherDashboard() {
             <p className="text-gray-600 dark:text-dark-text-secondary">Welcome back, {user?.firstName}</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-dark-text-secondary hover:text-gray-800 dark:hover:text-dark-text-primary transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-dark-bg-tertiary"
-            >
-              {isDark ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </button>
             <SignedIn>
               <UserButton afterSignOutUrl="/#/" />
             </SignedIn>
             <SignedOut>
-              <a href="/#/login" className="btn-primary">Sign In</a>
+              <a href="/#/auth/signin" className="btn-primary">Sign In</a>
             </SignedOut>
           </div>
         </div>

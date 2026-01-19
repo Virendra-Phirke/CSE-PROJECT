@@ -29,14 +29,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
-        element={
-          <SignedOut>
-            <LoginPage />
-          </SignedOut>
-        } 
-      />
+      <Route path="/login" element={<Navigate to="/auth/signin" />} />
       
       {/* Add a route for role setup */}
       <Route 
@@ -98,7 +91,7 @@ function AppRoutes() {
             userRole === 'student' ? <Navigate to="/student" /> :
             <Navigate to="/setup-role" />
           ) : (
-            <Navigate to="/login" />
+            <Navigate to="/auth/signin" />
           )
         } 
       />

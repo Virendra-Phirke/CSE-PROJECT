@@ -16,21 +16,24 @@ export { ThemeContext };
 const ACCENTS = ['purple-pink', 'blue-cyan', 'green-teal', 'orange-red', 'indigo-purple'];
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(() => (localStorage.getItem('theme') === 'light' ? false : true));
+  // Always use dark theme - force dark mode
+  const [isDark] = useState(true);
   const [accent, setAccent] = useState(() => localStorage.getItem('accent') || 'purple-pink');
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
+    // Force dark class on document
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.accent = accent;
     localStorage.setItem('accent', accent);
   }, [accent]);
 
-  const toggleTheme = () => setIsDark(d => !d);
-  const setTheme = (theme: 'light' | 'dark') => setIsDark(theme === 'dark');
+  // Keep these functions for compatibility but they won't change theme
+  const toggleTheme = () => {}; // No-op
+  const setTheme = () => {}; // No-op
 
   const cycleAccent = useCallback((newAccent?: string) => {
     if (newAccent && ACCENTS.includes(newAccent)) {

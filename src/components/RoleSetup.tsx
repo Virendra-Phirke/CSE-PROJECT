@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { BookOpen, Users } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function RoleSetup() {
-  const [role, setRole] = useState<'teacher' | 'student'>('student');
-  const [loading, setLoading] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Try to get intended role from Clerk metadata (set during sign-in/sign-up)
+  const intendedRole = user?.unsafeMetadata?.intendedRole as 'teacher' | 'student' | undefined;
+  const [role, setRole] = useState<'teacher' | 'student'>(intendedRole || 'student');
+  const [loading, setLoading] = useState(false);
+  
   // Get the return URL from location state
   const returnTo = location.state?.returnTo;
+
+  // If user selected a role during sign-in, pre-select it
+  useEffect(() => {
+    if (intendedRole) {
+      setRole(intendedRole);
+    }
+  }, [intendedRole]);
 
   const handleRoleSubmit = async () => {
     if (!user) return;

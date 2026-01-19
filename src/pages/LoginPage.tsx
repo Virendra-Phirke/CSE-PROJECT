@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { ModernAuthCard } from '../components/ModernAuthCard';
 import { canonicalizeRole } from '../lib/roleUtils';
 
 function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [role, setRole] = useState<'teacher' | 'student'>('student');
   const { user, isLoaded } = useUser();
   const location = useLocation();
   
@@ -39,12 +36,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg-primary flex items-center justify-center px-4 py-8">
-      <ModernAuthCard 
-        defaultRole={role}
-        mode={isLogin ? 'signin' : 'signup'}
-        onRoleSelect={setRole}
-        onModeChange={(mode) => setIsLogin(mode === 'signin')}
-      />
+      <ModernAuthCard mode="signin" />
     </div>
   );
 }

@@ -1,207 +1,161 @@
 import React, { useState } from 'react';
 import { SignIn, SignUp } from '@clerk/clerk-react';
-import { Users, BookOpen } from 'lucide-react';
+import { GraduationCap, Users } from 'lucide-react';
 
 interface ModernAuthCardProps {
-  onRoleSelect?: (role: 'student' | 'teacher') => void;
-  defaultRole?: 'student' | 'teacher';
   mode?: 'signin' | 'signup';
-  onModeChange?: (mode: 'signin' | 'signup') => void;
 }
 
-export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({
-  onRoleSelect,
-  defaultRole = 'student',
-  mode = 'signin',
-  onModeChange
-}) => {
-  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>(defaultRole);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>(mode);
-  const [isFlipping, setIsFlipping] = useState(false);
+/**
+ * Auth card with role selection - users choose Teacher or Student before signing in.
+ * Uses Clerk's appearance prop for consistent theming.
+ */
+export const ModernAuthCard: React.FC<ModernAuthCardProps> = ({ mode = 'signin' }) => {
+  const [selectedRole, setSelectedRole] = useState<'teacher' | 'student' | null>(null);
 
-  const handleRoleSelect = (role: 'student' | 'teacher') => {
-    setSelectedRole(role);
-    onRoleSelect?.(role);
-  };
+  // If no role selected yet, show role selection screen
+  if (!selectedRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-2xl bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Welcome to QuizMaster
+            </h2>
+            <p className="text-gray-400">
+              Choose your role to {mode === 'signin' ? 'sign in' : 'create an account'}
+            </p>
+          </div>
 
-  const handleModeChange = (newMode: 'signin' | 'signup') => {
-    if (newMode === authMode) return;
-    
-    setIsFlipping(true);
-    setTimeout(() => {
-      setAuthMode(newMode);
-      onModeChange?.(newMode);
-      setTimeout(() => setIsFlipping(false), 150);
-    }, 150);
-  };
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Teacher Option */}
+            <button
+              onClick={() => setSelectedRole('teacher')}
+              className="group relative p-8 border-2 border-slate-700 rounded-xl hover:border-red-500 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            >
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <GraduationCap className="w-10 h-10 text-white" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Teacher
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Create and manage tests, view student results and analytics
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Student Option */}
+            <button
+              onClick={() => setSelectedRole('student')}
+              className="group relative p-8 border-2 border-slate-700 rounded-xl hover:border-purple-500 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            >
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <Users className="w-10 h-10 text-white" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Student
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Take tests, view your results and track your progress
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            You can change your role later in account settings
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Role selected - show Clerk auth form
+  const roleColor = selectedRole === 'teacher' ? 'red' : 'purple';
+  const roleColorHex = selectedRole === 'teacher' ? '#ef4444' : '#a855f7';
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 animate-gradient-shift"></div>
-        <div className="floating-particles"></div>
-      </div>
-
-      {/* Logo */}
-      <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-pink-500/30">
-        📚
-      </div>
-
-      {/* Welcome Text */}
-      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-center">
-        <p className="text-gray-300 text-sm">
-          {authMode === 'signin' ? 'Welcome back! Sign in to continue' : 'Create your account to get started'}
-        </p>
-      </div>
-
-      {/* Main Card */}
-      <div className="modern-auth-card relative">
-        <div className={`card-flip-container ${isFlipping ? 'flipping' : ''}`}>
-          <div className="card-flip-inner">
-            {/* Role Selection */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-center mb-6 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Select Your Role
-              </h2>
-              
-              <div className="flex gap-4 mb-6">
-                <button
-                  onClick={() => handleRoleSelect('student')}
-                  className={`modern-role-option ${selectedRole === 'student' ? 'selected' : ''}`}
-                >
-                  <Users className={`h-8 w-8 mb-3 transition-colors duration-300 ${
-                    selectedRole === 'student' ? 'text-purple-400' : 'text-gray-400'
-                  }`} />
-                  <div className="text-sm font-medium text-gray-200">Student</div>
-                  {selectedRole === 'student' && (
-                    <div className="absolute top-2 right-3 text-pink-400 font-bold">✓</div>
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => handleRoleSelect('teacher')}
-                  className={`modern-role-option ${selectedRole === 'teacher' ? 'selected' : ''}`}
-                >
-                  <BookOpen className={`h-8 w-8 mb-3 transition-colors duration-300 ${
-                    selectedRole === 'teacher' ? 'text-pink-400' : 'text-gray-400'
-                  }`} />
-                  <div className="text-sm font-medium text-gray-200">Teacher</div>
-                  {selectedRole === 'teacher' && (
-                    <div className="absolute top-2 right-3 text-pink-400 font-bold">✓</div>
-                  )}
-                </button>
-              </div>
-
-              {/* Mode Toggle Buttons */}
-              <div className="flex gap-3 mb-8">
-                <button
-                  onClick={() => handleModeChange('signin')}
-                  className={`modern-mode-btn ${authMode === 'signin' ? 'active' : 'inactive'}`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => handleModeChange('signup')}
-                  className={`modern-mode-btn ${authMode === 'signup' ? 'active' : 'inactive'}`}
-                >
-                  Sign Up
-                </button>
-              </div>
-            </div>
-
-            {/* Auth Section */}
-            <div className="auth-content">
-              <h3 className="text-xl font-medium text-center mb-2 text-gray-100">
-                {authMode === 'signin' ? 'Sign in to Quizmaster' : 'Create your Quizmaster account'}
-              </h3>
-              <p className="text-center text-gray-400 text-sm mb-6">
-                {authMode === 'signin' 
-                  ? 'Welcome back! Please sign in to continue' 
-                  : 'Join thousands of learners and educators'
-                }
-              </p>
-
-              {/* Clerk Auth Component */}
-              <div className="clerk-container min-h-[300px] w-full">
-                {authMode === 'signin' ? (
-                  <SignIn
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full min-h-[250px]",
-                        card: "bg-transparent shadow-none border-0 p-0 block w-full",
-                        headerTitle: "hidden",
-                        headerSubtitle: "hidden",
-                        socialButtons: "flex flex-col gap-3 mb-6",
-                        socialButtonsBlockButton: "modern-google-btn w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 rounded-lg transition-colors duration-200",
-                        socialButtonsBlockButtonText: "text-gray-200 font-medium",
-                        dividerLine: "bg-gray-600",
-                        dividerText: "text-gray-400 text-sm",
-                        formFieldLabel: "text-gray-300 text-sm font-medium mb-2 block",
-                        formFieldInput: "modern-input-field w-full py-3 px-4 bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-400 focus:border-pink-400 focus:ring-1 focus:ring-pink-400 transition-colors duration-200",
-                        formButtonPrimary: "modern-continue-btn w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200",
-                        footerActionLink: "text-pink-400 hover:text-pink-300",
-                        formResendCodeLink: "text-pink-400 hover:text-pink-300",
-                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300",
-                        formFieldSuccessText: "text-green-400",
-                        formFieldErrorText: "text-red-400",
-                        identityPreviewText: "text-gray-300",
-                        identityPreviewEditButton: "text-pink-400 hover:text-pink-300"
-                      },
-                      layout: {
-                        showOptionalFields: false,
-                        socialButtonsVariant: 'blockButton'
-                      }
-                    }}
-                    fallbackRedirectUrl="/#/login"
-                    forceRedirectUrl="/#/login"
-                  />
-                ) : (
-                  <SignUp
-                    appearance={{
-                      elements: {
-                        rootBox: "w-full min-h-[250px]",
-                        card: "bg-transparent shadow-none border-0 p-0 block w-full",
-                        headerTitle: "hidden",
-                        headerSubtitle: "hidden",
-                        socialButtons: "flex flex-col gap-3 mb-6",
-                        socialButtonsBlockButton: "modern-google-btn w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600 rounded-lg transition-colors duration-200",
-                        socialButtonsBlockButtonText: "text-gray-200 font-medium",
-                        dividerLine: "bg-gray-600",
-                        dividerText: "text-gray-400 text-sm",
-                        formFieldLabel: "text-gray-300 text-sm font-medium mb-2 block",
-                        formFieldInput: "modern-input-field w-full py-3 px-4 bg-gray-800 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-400 focus:border-pink-400 focus:ring-1 focus:ring-pink-400 transition-colors duration-200",
-                        formButtonPrimary: "modern-continue-btn w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-medium rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200",
-                        footerActionLink: "text-pink-400 hover:text-pink-300",
-                        formResendCodeLink: "text-pink-400 hover:text-pink-300",
-                        otherMethodsActionLink: "text-pink-400 hover:text-pink-300",
-                        formFieldSuccessText: "text-green-400",
-                        formFieldErrorText: "text-red-400",
-                        identityPreviewText: "text-gray-300",
-                        identityPreviewEditButton: "text-pink-400 hover:text-pink-300"
-                      },
-                      layout: {
-                        showOptionalFields: true,
-                        socialButtonsVariant: 'blockButton'
-                      }
-                    }}
-                    fallbackRedirectUrl="/#/login"
-                    forceRedirectUrl="/#/login"
-                  />
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="text-center mt-6 text-xs text-gray-500">
-                Secured by{' '}
-                <a href="https://clerk.com" className="text-pink-400 hover:text-pink-300">
-                  Clerk
-                </a>
-                <br />
-                <span className="text-pink-400">Development mode</span>
-              </div>
-            </div>
+    <div className="min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-8">
+        {/* Role indicator with back button */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => setSelectedRole(null)}
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            ← Change role
+          </button>
+          <div className={`px-4 py-2 ${selectedRole === 'teacher' ? 'bg-red-900/30 text-red-400' : 'bg-purple-900/30 text-purple-400'} rounded-full text-sm font-medium`}>
+            {selectedRole === 'teacher' ? (
+              <span className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                Teacher
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Student
+              </span>
+            )}
           </div>
+        </div>
+
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-white">
+            {mode === 'signin' ? `Sign in as ${selectedRole}` : `Create ${selectedRole} account`}
+          </h2>
+          <p className="text-sm text-gray-400 mt-2">
+            Access your dashboard and tests
+          </p>
+        </div>
+        
+        <div className="mt-4">
+          {mode === 'signin' ? (
+            <SignIn 
+              appearance={{
+                variables: {
+                  colorPrimary: roleColorHex,
+                },
+                elements: {
+                  rootBox: 'w-full',
+                  card: 'bg-transparent shadow-none p-0 w-full',
+                  form: 'w-full',
+                  formFieldInput: 'w-full bg-slate-700 text-white border-slate-600',
+                  formButtonPrimary: `w-full bg-gradient-to-r from-${roleColor}-500 to-${roleColor}-600`,
+                  footerActionLink: `text-${roleColor}-400 hover:text-${roleColor}-300`
+                }
+              }}
+              redirectUrl="/#/student"
+              signUpUrl="/#/auth/signup"
+              unsafeMetadata={{ intendedRole: selectedRole }}
+            />
+          ) : (
+            <SignUp 
+              appearance={{
+                variables: {
+                  colorPrimary: roleColorHex,
+                },
+                elements: {
+                  rootBox: 'w-full',
+                  card: 'bg-transparent shadow-none p-0 w-full',
+                  form: 'w-full',
+                  formFieldInput: 'w-full bg-slate-700 text-white border-slate-600',
+                  formButtonPrimary: `w-full bg-gradient-to-r from-${roleColor}-500 to-${roleColor}-600`,
+                  footerActionLink: `text-${roleColor}-400 hover:text-${roleColor}-300`
+                }
+              }}
+              redirectUrl="/#/setup-role"
+              signInUrl="/#/auth/signin"
+              unsafeMetadata={{ intendedRole: selectedRole }}
+            />
+          )}
         </div>
       </div>
     </div>
