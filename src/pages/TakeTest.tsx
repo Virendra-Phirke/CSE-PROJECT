@@ -55,6 +55,10 @@ function TakeTest() {
   const totalTestTimerRef = useRef<NodeJS.Timeout | null>(null); // Track main test timer
   const totalTestTimerStarted = useRef(false); // Track if main timer has started
   
+  // Track time remaining for each question individually
+  const questionTimesRef = useRef<Record<number, number>>({}); // Store remaining time per question
+  const lastQuestionRef = useRef<number>(-1); // Track last viewed question
+  
   // Use React Query for attempt state
   const attemptQuery = useAttemptQuery(testId);
   const attempt = attemptQuery.data || null;
@@ -156,8 +160,17 @@ function TakeTest() {
         ? test.timePerQuestion 
         : Math.floor((test.duration * 60) / test.questions.length);
       setTimePerQuestion(calculatedTimePerQuestion);
-      setQuestionTimeLeft(calculatedTimePerQuestion);
-      questionTimerInitialized.current = true; // Mark as initialized
+      
+      // Initialize all question timers with full time (only once)
+      if (!questionTimerInitialized.current) {
+        const initialTimes: Record<number, number> = {};
+        for (let i = 0; i < test.questions.length; i++) {
+          initialTimes[i] = calculatedTimePerQuestion;
+        }
+        questionTimesRef.current = initialTimes;
+        setQuestionTimeLeft(calculatedTimePerQuestion);
+        questionTimerInitialized.current = true; // Mark as initialized
+      }
       
       // answers length should match displayQuestions length (deferred until we know mapping)
     }
@@ -317,13 +330,24 @@ function TakeTest() {
     currentQuestionRef.current = currentQuestion;
   }, [currentQuestion]);
 
-  // Reset per-question timer when currentQuestion changes (but not on initial load)
+  // Handle question change - save current question's time and restore new question's time
   useEffect(() => {
-    // Skip the initial reset since the timer is already set when test starts
-    if (testStarted && displayQuestions.length > 0 && questionTimerInitialized.current) {
-      setQuestionTimeLeft(timePerQuestion);
+    if (!testStarted || displayQuestions.length === 0) return;
+    
+    // Save the current question's remaining time before switching
+    if (lastQuestionRef.current >= 0 && lastQuestionRef.current !== currentQuestion) {
+      questionTimesRef.current[lastQuestionRef.current] = questionTimeLeft;
     }
-  }, [currentQuestion, testStarted, displayQuestions.length, timePerQuestion]);
+    
+    // Load the new question's remaining time
+    const savedTime = questionTimesRef.current[currentQuestion];
+    if (savedTime !== undefined) {
+      setQuestionTimeLeft(savedTime);
+    }
+    
+    // Update last question tracker
+    lastQuestionRef.current = currentQuestion;
+  }, [currentQuestion, testStarted, displayQuestions.length]);
 
   // Per-question timer effect - single stable interval
   useEffect(() => {
@@ -341,10 +365,14 @@ function TakeTest() {
     // Create a stable interval that runs every second
     questionTimerRef.current = setInterval(() => {
       setQuestionTimeLeft(prev => {
-        if (prev <= 1) {
-          // Time's up for this question - use ref to get current question value
-          const currentQ = currentQuestionRef.current;
-          
+        const newValue = prev - 1;
+        
+        // Update the stored time for current question
+        const currentQ = currentQuestionRef.current;
+        questionTimesRef.current[currentQ] = Math.max(0, newValue);
+        
+        if (newValue <= 0) {
+          // Time's up for this question
           setTimedOutQuestions(prevSet => {
             const newSet = new Set(prevSet);
             newSet.add(currentQ);
@@ -356,9 +384,9 @@ function TakeTest() {
             setCurrentQuestion(currentQ + 1);
           }
           
-          return 0; // Return 0, the reset effect will set the new timer
+          return 0;
         }
-        return prev - 1;
+        return newValue;
       });
     }, 1000);
 
