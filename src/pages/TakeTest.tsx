@@ -49,6 +49,11 @@ function TakeTest() {
   const [questionTimeLeft, setQuestionTimeLeft] = useState(0);
   const [timedOutQuestions, setTimedOutQuestions] = useState<Set<number>>(new Set());
   const [timePerQuestion, setTimePerQuestion] = useState(30); // Default 30 seconds
+  const questionTimerInitialized = useRef(false); // Track if timer has been initialized
+  const questionTimerRef = useRef<NodeJS.Timeout | null>(null); // Track the interval
+  const currentQuestionRef = useRef(0); // Track current question for stable reference
+  const totalTestTimerRef = useRef<NodeJS.Timeout | null>(null); // Track main test timer
+  const totalTestTimerStarted = useRef(false); // Track if main timer has started
   
   // Use React Query for attempt state
   const attemptQuery = useAttemptQuery(testId);
@@ -145,10 +150,14 @@ function TakeTest() {
       }
       setTimeLeft(remaining);
       
-      // Calculate time per question from total duration
-      const calculatedTimePerQuestion = Math.floor((test.duration * 60) / test.questions.length);
+      // Calculate time per question - use stored value if available, otherwise calculate
+      // Using stored value ensures accuracy even when duration was rounded up
+      const calculatedTimePerQuestion = test.timePerQuestion 
+        ? test.timePerQuestion 
+        : Math.floor((test.duration * 60) / test.questions.length);
       setTimePerQuestion(calculatedTimePerQuestion);
       setQuestionTimeLeft(calculatedTimePerQuestion);
+      questionTimerInitialized.current = true; // Mark as initialized
       
       // answers length should match displayQuestions length (deferred until we know mapping)
     }
@@ -191,17 +200,17 @@ function TakeTest() {
   const handleNext = useCallback(() => {
     if (displayQuestions.length && currentQuestion < displayQuestions.length - 1) {
       setCurrentQuestion(q => q + 1);
-      setQuestionTimeLeft(timePerQuestion); // Reset timer for next question
+      // Timer will be reset automatically by the effect watching currentQuestion
     }
-  }, [displayQuestions.length, currentQuestion, timePerQuestion]);
+  }, [displayQuestions.length, currentQuestion]);
 
   const handlePrevious = useCallback(() => {
     // Prevent navigating back to timed-out questions
     if (currentQuestion > 0 && !timedOutQuestions.has(currentQuestion - 1)) {
       setCurrentQuestion(q => q - 1);
-      setQuestionTimeLeft(timePerQuestion); // Reset timer when navigating
+      // Timer will be reset automatically by the effect watching currentQuestion
     }
-  }, [currentQuestion, timedOutQuestions, timePerQuestion]);
+  }, [currentQuestion, timedOutQuestions]);
 
   // Repositioned keyboard navigation effect after handlers defined
   useEffect(() => {
@@ -218,7 +227,7 @@ function TakeTest() {
         // Prevent navigating to timed-out questions
         if (idx >= 0 && idx < displayQuestions.length && !timedOutQuestions.has(idx)) {
           setCurrentQuestion(idx);
-          setQuestionTimeLeft(timePerQuestion); // Reset timer when manually navigating
+          // Timer will be reset automatically by the effect watching currentQuestion
         }
       } else if (/^[a-dA-D]$/.test(e.key)) {
         const optionIdx = e.key.toLowerCase().charCodeAt(0) - 97; // a=0
@@ -232,7 +241,7 @@ function TakeTest() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [testStarted, displayQuestions, currentQuestion, getDisplayOptions, handleNext, handlePrevious, handleAnswerSelect, timedOutQuestions, timePerQuestion]);
+  }, [testStarted, displayQuestions, currentQuestion, getDisplayOptions, handleNext, handlePrevious, handleAnswerSelect, timedOutQuestions]);
 
   const toggleFlag = () => setFlagged(f => ({ ...f, [currentQuestion]: !f[currentQuestion] }));
 
@@ -280,52 +289,86 @@ function TakeTest() {
 
   // Timer effect - must be after handleSubmit declaration
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    // Only run this effect once when test starts
+    if (!testStarted || totalTestTimerStarted.current) return;
     
-    if (testStarted && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    totalTestTimerStarted.current = true;
+    
+    totalTestTimerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => {
-      if (timer) clearInterval(timer);
+      if (totalTestTimerRef.current) {
+        clearInterval(totalTestTimerRef.current);
+        totalTestTimerRef.current = null;
+      }
     };
-  }, [testStarted, timeLeft, handleSubmit]);
+  }, [testStarted, handleSubmit]);
 
-  // Per-question timer effect - auto-advance when time runs out
+  // Keep currentQuestionRef in sync
   useEffect(() => {
-    let questionTimer: NodeJS.Timeout;
+    currentQuestionRef.current = currentQuestion;
+  }, [currentQuestion]);
+
+  // Reset per-question timer when currentQuestion changes (but not on initial load)
+  useEffect(() => {
+    // Skip the initial reset since the timer is already set when test starts
+    if (testStarted && displayQuestions.length > 0 && questionTimerInitialized.current) {
+      setQuestionTimeLeft(timePerQuestion);
+    }
+  }, [currentQuestion, testStarted, displayQuestions.length, timePerQuestion]);
+
+  // Per-question timer effect - single stable interval
+  useEffect(() => {
+    if (!testStarted) return;
     
-    if (testStarted && questionTimeLeft > 0) {
-      questionTimer = setInterval(() => {
-        setQuestionTimeLeft(prev => {
-          if (prev <= 1) {
-            // Time's up for this question
-            setTimedOutQuestions(prevSet => new Set(prevSet).add(currentQuestion));
-            
-            // Auto-advance to next question if available
-            if (currentQuestion < displayQuestions.length - 1) {
-              setCurrentQuestion(q => q + 1);
-              return timePerQuestion; // Reset timer for next question
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    // Clear any existing timer
+    if (questionTimerRef.current) {
+      clearInterval(questionTimerRef.current);
+      questionTimerRef.current = null;
     }
 
+    // Only start timer if we have time left
+    if (questionTimeLeft <= 0) return;
+    
+    // Create a stable interval that runs every second
+    questionTimerRef.current = setInterval(() => {
+      setQuestionTimeLeft(prev => {
+        if (prev <= 1) {
+          // Time's up for this question - use ref to get current question value
+          const currentQ = currentQuestionRef.current;
+          
+          setTimedOutQuestions(prevSet => {
+            const newSet = new Set(prevSet);
+            newSet.add(currentQ);
+            return newSet;
+          });
+          
+          // Auto-advance to next question if available
+          if (currentQ < displayQuestions.length - 1) {
+            setCurrentQuestion(currentQ + 1);
+          }
+          
+          return 0; // Return 0, the reset effect will set the new timer
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => {
-      if (questionTimer) clearInterval(questionTimer);
+      if (questionTimerRef.current) {
+        clearInterval(questionTimerRef.current);
+        questionTimerRef.current = null;
+      }
     };
-  }, [testStarted, questionTimeLeft, currentQuestion, displayQuestions.length, timePerQuestion]);
+  }, [testStarted, currentQuestion, displayQuestions.length]);
 
   // Auto-submit safeguard: periodic backup submission
   useEffect(() => {
@@ -359,23 +402,24 @@ function TakeTest() {
   }, [testStarted, test, attempt?.status, answers, testId, submitResultMutation, navigate]);
 
   // Auto-submit safeguard: force submit when approaching deadline
+  // This effect should only run once to set up the timeout
   useEffect(() => {
-    if (!testStarted || !test || attempt?.status === 'submitted') return;
+    if (!testStarted || !test || attempt?.status === 'submitted' || timeLeft <= 0) return;
     
-    if (timeLeft > 0 && timeLeft <= AUTO_SUBMIT_CONFIG.FORCE_SUBMIT_BUFFER) {
-      const forceSubmit = async () => {
+    // Only set up timeout if we have enough time
+    if (timeLeft > AUTO_SUBMIT_CONFIG.FORCE_SUBMIT_BUFFER) {
+      const delayUntilForceSubmit = (timeLeft - AUTO_SUBMIT_CONFIG.FORCE_SUBMIT_BUFFER) * 1000;
+      
+      forceSubmitTimeoutRef.current = setTimeout(async () => {
         try {
+          // Get latest answers at the time of submission
           await submitResultMutation.mutateAsync({ testId: test.id, answers });
           navigate(`/results/${testId}`);
         } catch (error) {
           console.error('Force submit failed:', error);
-          // Still try to navigate as the test time is up
           navigate(`/results/${testId}`);
         }
-      };
-
-      // Force submit with slight delay to ensure we don't double-submit with timer
-      forceSubmitTimeoutRef.current = setTimeout(forceSubmit, 1000);
+      }, delayUntilForceSubmit);
     }
 
     return () => {
@@ -383,7 +427,9 @@ function TakeTest() {
         clearTimeout(forceSubmitTimeoutRef.current);
       }
     };
-  }, [timeLeft, testStarted, test, attempt?.status, answers, testId, submitResultMutation, navigate]);
+    // Run only once when test starts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testStarted]);
 
   // Auto-submit safeguard: handle page visibility changes and beforeunload
   useEffect(() => {

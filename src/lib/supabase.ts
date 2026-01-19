@@ -24,6 +24,7 @@ export interface Test {
   title: string;
   description: string;
   duration: number;
+  time_per_question?: number; // Exact seconds per question, prevents rounding errors
   start_date: string;
   end_date: string;
   is_active: boolean;

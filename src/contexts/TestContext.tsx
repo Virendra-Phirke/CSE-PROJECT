@@ -21,6 +21,7 @@ export interface LegacyTest {
   description: string;
   questions: LegacyQuestion[];
   duration: number;
+  timePerQuestion?: number; // Optional: seconds allocated per question
   createdBy: string;
   startDate: string;
   endDate: string;

@@ -135,15 +135,18 @@ function TestCreation() {
     try {
       // Calculate total duration: (number of questions * seconds per question) / 60 to get minutes
       const totalSeconds = questions.length * timePerQuestion;
+      // Round up to ensure students have enough time (better to have slightly more than less)
       const totalDurationMinutes = Math.ceil(totalSeconds / 60);
       const displayMinutes = Math.floor(totalSeconds / 60);
       const displaySeconds = totalSeconds % 60;
       
+      // Store the exact timePerQuestion value in the test data for accurate retrieval
       await createTestMutation.mutateAsync({
         ...testData,
         questions,
         createdBy: user?.id || '',
-        duration: totalDurationMinutes
+        duration: totalDurationMinutes,
+        timePerQuestion // Store this for accurate per-question timing
       });
       
       addToast({
