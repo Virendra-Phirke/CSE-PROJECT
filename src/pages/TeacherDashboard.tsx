@@ -16,7 +16,8 @@ import {
   EyeOff, 
   Share2, 
   Copy,
-  CheckCircle
+  CheckCircle,
+  Home
 } from 'lucide-react';
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
 import { Skeleton, CardSkeleton } from '../components/Skeleton';
@@ -176,8 +177,25 @@ function TeacherDashboard() {
             <p className="text-gray-600 dark:text-dark-text-secondary">Welcome back, {user?.firstName}</p>
           </div>
           <div className="flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="flex items-center justify-center w-10 h-10 bg-gray-800 dark:bg-gray-900 text-gray-200 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-all shadow-md hover:shadow-lg"
+              title="Home"
+            >
+              <Home className="h-5 w-5" />
+            </Link>
             <SignedIn>
-              <UserButton afterSignOutUrl="/#/" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden ring-2 ring-gray-700 dark:ring-gray-600 hover:ring-pink-500 transition-all shadow-md hover:shadow-lg">
+                <UserButton 
+                  afterSignOutUrl="/#/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10",
+                      userButtonTrigger: "focus:shadow-none"
+                    }
+                  }}
+                />
+              </div>
             </SignedIn>
             <SignedOut>
               <a href="/#/auth/signin" className="btn-primary">Sign In</a>
@@ -289,17 +307,24 @@ function TeacherDashboard() {
           
           <div className="p-6">
             {myTests.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="h-16 w-16 text-gray-300 dark:text-dark-text-tertiary mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text-primary mb-2">No tests created yet</h3>
-                <p className="text-gray-600 dark:text-dark-text-secondary mb-6">Create your first test to get started with online assessments.</p>
-                <Link
-                  to="/teacher/create-test"
-                  className="btn-primary"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Test
-                </Link>
+              <div className="flex items-center justify-center min-h-[500px]">
+                <div className="text-center max-w-md mx-auto">
+                  <div className="mb-8 relative">
+                    <div className="w-32 h-32 mx-auto rounded-3xl bg-gradient-to-br from-pink-500/10 to-purple-600/10 dark:from-pink-500/20 dark:to-purple-600/20 flex items-center justify-center backdrop-blur-xl border border-white/10">
+                      <BookOpen className="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-br from-pink-500/20 to-purple-600/20 rounded-3xl blur-2xl -z-10"></div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">No tests created yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">Create your first test to get started with online assessments.</p>
+                  <Link
+                    to="/teacher/create-test"
+                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-semibold text-base hover:shadow-lg hover:shadow-purple-500/50 hover:brightness-110 transition-all transform hover:scale-105"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Create Your First Test
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -312,7 +337,10 @@ function TeacherDashboard() {
                   return (
                     <div key={test.id} className="card-interactive p-6">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1">
+                        <Link 
+                          to={`/teacher/test/${test.id}`}
+                          className="flex-1 hover:opacity-80 transition-opacity"
+                        >
                           <div className="flex items-center space-x-3 mb-2">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-text-primary">{test.title}</h3>
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -340,7 +368,7 @@ function TeacherDashboard() {
                               {averageScore.toFixed(1)}% avg score
                             </span>
                           </div>
-                        </div>
+                        </Link>
 
                         <div className="flex items-center space-x-2 ml-6">
                           <button

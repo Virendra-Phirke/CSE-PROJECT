@@ -45,6 +45,17 @@ export interface Question {
   created_at: string;
 }
 
+export interface Review {
+  id: string;
+  user_id: string;
+  name: string;
+  role: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TestResult {
   id: string;
   test_id: string;

@@ -16,6 +16,8 @@ import TestResults from './pages/TestResults';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ManageStudentsPage from './pages/ManageStudentsPage';
 import QuestionBankPage from './pages/QuestionBankPage';
+import TestDetailPage from './pages/TestDetailPage';
+import AllReviewsPage from './pages/AllReviewsPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import RoleSetup from './components/RoleSetup';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -39,6 +41,9 @@ function AppRoutes() {
     <Routes>
       {/* User profile */}
   <Route path="/user" element={user ? <UserProfilePage /> : <Navigate to="/auth/signin" />} />
+      
+      {/* All Reviews Page - Public */}
+      <Route path="/reviews" element={<AllReviewsPage />} />
       
       {/* Legacy /login still supported - render auth page (signin) */}
       <Route path="/login" element={<AuthPage defaultMode="signin" />} />
@@ -116,6 +121,16 @@ function AppRoutes() {
         } 
       />
       <Route 
+        path="/teacher/test/:testId" 
+        element={
+          user ? (
+            userRole === 'teacher' ? <TestDetailPage /> : <Navigate to="/setup-role" />
+          ) : (
+            <Navigate to="/auth/signin" />
+          )
+        } 
+      />
+      <Route 
         path="/student" 
         element={
           user ? (
@@ -186,8 +201,15 @@ function AppHeader() {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10 ${scrolled ? 'backdrop-blur-xl bg-black/60 shadow-lg shadow-black/40' : 'backdrop-blur-lg bg-black/40'} `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
-          <a href="/" className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 bg-clip-text text-transparent drop-shadow">QuizMaster</a>
-          <span className="hidden sm:inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-white/10 text-fuchsia-200 border border-white/10">Beta</span>
+          <a href="/" className="quizmaster-button relative text-3xl font-extrabold tracking-wider cursor-pointer">
+            <span className="actual-text text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.6)' }}>&nbsp;QuizMaster&nbsp;</span>
+            <span aria-hidden="true" className="hover-text absolute inset-0 overflow-hidden transition-all duration-500" style={{ 
+              width: '0%', 
+              color: '#FF3737', 
+              WebkitTextStroke: '1px #FF3737',
+              borderRight: '6px solid #FF3737'
+            }}>&nbsp;QuizMaster&nbsp;</span>
+          </a>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <a href="/#home" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Home<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
@@ -199,12 +221,17 @@ function AppHeader() {
           <SignedIn>
             <Link 
               to={dashboardPath} 
-              className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-semibold text-sm hover:shadow-lg hover:brightness-110 transition-all"
+              className="group/button relative hidden sm:inline-flex items-center justify-center overflow-hidden rounded-md bg-gray-800/30 backdrop-blur-lg px-6 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className="hidden md:inline">Dashboard</span>
+              <span className="flex items-center gap-2 text-base">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Dashboard
+              </span>
+              <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]">
+                <div className="relative h-full w-10 bg-white/20"></div>
+              </div>
             </Link>
             <div className="flex items-center">
               <UserButton 

@@ -41,12 +41,23 @@ function EditTest() {
     if (testId) {
       const test = getTestById(testId);
       if (test) {
+        // Format dates for datetime-local input (YYYY-MM-DDTHH:mm)
+        const formatDateForInput = (dateString: string) => {
+          const date = new Date(dateString);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}`;
+        };
+
         setTestData({
           title: test.title,
           description: test.description,
           duration: test.duration,
-          startDate: test.startDate,
-          endDate: test.endDate,
+          startDate: formatDateForInput(test.startDate),
+          endDate: formatDateForInput(test.endDate),
           isActive: test.isActive
         });
         setQuestions(test.questions.length > 0 ? test.questions : [
@@ -58,8 +69,10 @@ function EditTest() {
           }
         ]);
         
-        // Calculate time per question from existing duration
-        if (test.questions.length > 0) {
+        // Calculate time per question from existing test data
+        if (test.timePerQuestion) {
+          setTimePerQuestion(test.timePerQuestion);
+        } else if (test.questions.length > 0) {
           const calculatedTimePerQuestion = Math.floor((test.duration * 60) / test.questions.length);
           setTimePerQuestion(calculatedTimePerQuestion);
         }
@@ -185,19 +198,19 @@ function EditTest() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-900">
       <ToastContainer />
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-slate-800 shadow-sm border-b border-slate-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
             <Link
               to="/teacher"
-              className="flex items-center text-gray-600 hover:text-gray-800 mr-4"
+              className="flex items-center text-gray-400 hover:text-white mr-4 transition-colors"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Test</h1>
+            <h1 className="text-2xl font-bold text-white">Edit Test</h1>
           </div>
         </div>
       </div>
@@ -205,12 +218,12 @@ function EditTest() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Test Information */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Test Information</h2>
+          <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Test Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label htmlFor="edit-test-title" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="edit-test-title" className="block text-sm font-medium text-gray-300 mb-2">
                   Test Title *
                 </label>
                 <input
@@ -219,14 +232,14 @@ function EditTest() {
                   name="title"
                   value={testData.title}
                   onChange={handleTestDataChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter test title"
                   required
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Description
                 </label>
                 <textarea
@@ -234,13 +247,13 @@ function EditTest() {
                   value={testData.description}
                   onChange={handleTestDataChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   placeholder="Enter test description"
                 />
               </div>
 
               <div>
-                <label htmlFor="edit-start-date" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="edit-start-date" className="block text-sm font-medium text-gray-300 mb-2">
                   Start Date & Time
                 </label>
                 <input
@@ -249,13 +262,13 @@ function EditTest() {
                   name="startDate"
                   value={testData.startDate}
                   onChange={handleTestDataChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="edit-end-date" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="edit-end-date" className="block text-sm font-medium text-gray-300 mb-2">
                   End Date & Time
                 </label>
                 <input
@@ -264,13 +277,13 @@ function EditTest() {
                   name="endDate"
                   value={testData.endDate}
                   onChange={handleTestDataChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="time-per-question" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="time-per-question" className="block text-sm font-medium text-gray-300 mb-2">
                   Time Limit per Question (seconds) *
                 </label>
                 <input
@@ -280,33 +293,33 @@ function EditTest() {
                   onChange={(e) => setTimePerQuestion(parseInt(e.target.value) || 30)}
                   min="10"
                   max="300"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   required
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-400 mt-1">
                   Recommended: 30-60 seconds per question
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Total Test Duration
                 </label>
-                <div className="w-full px-3 py-2 bg-gray-100 text-gray-900 border border-gray-300 rounded-lg">
+                <div className="w-full px-3 py-2 bg-slate-700 text-white border border-slate-600 rounded-lg">
                   {(() => {
                     const totalSeconds = questions.length * timePerQuestion;
                     const minutes = Math.floor(totalSeconds / 60);
                     const seconds = totalSeconds % 60;
                     return `${minutes}min ${seconds}sec`;
                   })()}
-                  <span className="text-gray-600 text-sm ml-2">
+                  <span className="text-gray-400 text-sm ml-2">
                     ({questions.length} question{questions.length !== 1 ? 's' : ''} × {timePerQuestion}s)
                   </span>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="edit-status" className="block text-sm font-medium text-gray-300 mb-2">
                   Status
                 </label>
                 <select
@@ -314,7 +327,7 @@ function EditTest() {
                   name="isActive"
                   value={testData.isActive.toString()}
                   onChange={(e) => setTestData({ ...testData, isActive: e.target.value === 'true' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 >
                   <option value="true">Active</option>
                   <option value="false">Inactive</option>
@@ -324,9 +337,9 @@ function EditTest() {
           </div>
 
           {/* Questions */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Questions</h2>
+              <h2 className="text-lg font-semibold text-white">Questions</h2>
               <button
                 type="button"
                 onClick={addQuestion}
@@ -339,9 +352,9 @@ function EditTest() {
 
             <div className="space-y-6">
               {questions.map((question: LegacyQuestion, questionIndex: number) => (
-                <div key={question.id} className="border border-gray-200 rounded-lg p-6">
+                <div key={question.id} className="border border-slate-700 rounded-lg p-6 bg-slate-750">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-md font-medium text-gray-900">Question {questionIndex + 1}</h3>
+                    <h3 className="text-md font-medium text-white">Question {questionIndex + 1}</h3>
                     {questions.length > 1 && (
                       <button
                         type="button"
@@ -355,14 +368,14 @@ function EditTest() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Question Text *
                     </label>
                     <textarea
                       value={question.question}
                       onChange={(e) => handleQuestionChange(questionIndex, 'question', e.target.value)}
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       placeholder="Enter your question"
                       required
                     />
@@ -371,14 +384,14 @@ function EditTest() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {question.options.map((option: string, optionIndex: number) => (
                       <div key={optionIndex}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                           Option {String.fromCharCode(65 + optionIndex)} *
                         </label>
                         <input
                           type="text"
                           value={option}
                           onChange={(e) => handleOptionChange(questionIndex, optionIndex, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                           placeholder={`Enter option ${String.fromCharCode(65 + optionIndex)}`}
                           required
                         />
@@ -387,14 +400,14 @@ function EditTest() {
                   </div>
 
                   <div>
-                    <label htmlFor={`edit-correct-answer-${questionIndex}`} className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor={`edit-correct-answer-${questionIndex}`} className="block text-sm font-medium text-gray-300 mb-2">
                       Correct Answer *
                     </label>
                     <select
                       id={`edit-correct-answer-${questionIndex}`}
                       value={question.correctAnswer}
                       onChange={(e) => handleCorrectAnswerChange(questionIndex, parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                       required
                     >
                       {question.options.map((_: string, index: number) => (
@@ -413,14 +426,14 @@ function EditTest() {
           <div className="flex justify-end space-x-4">
             <Link
               to="/teacher"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-slate-600 text-gray-300 rounded-lg hover:bg-slate-700 transition-colors"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-500/50 hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 'Updating...'

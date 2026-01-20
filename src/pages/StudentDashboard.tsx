@@ -3,7 +3,7 @@ import { useUser, UserButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
 import { Link } from 'react-router-dom';
-import { BookOpen, Clock, CheckCircle, TrendingUp, Award } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, TrendingUp, Award, Home } from 'lucide-react';
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
 import { Skeleton, CardSkeleton } from '../components/Skeleton';
 import { useTestsQuery, useResultsQuery } from '../hooks/quizQueries';
@@ -99,15 +99,32 @@ function StudentDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-bg-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top controls (replacing removed nav bar) */}
+        {/* Top controls */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text-primary">Student Dashboard</h1>
             <p className="text-gray-600 dark:text-dark-text-secondary">Welcome back, {user?.firstName}</p>
           </div>
           <div className="flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="flex items-center justify-center w-10 h-10 bg-gray-800 dark:bg-gray-900 text-gray-200 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-all shadow-md hover:shadow-lg"
+              title="Home"
+            >
+              <Home className="h-5 w-5" />
+            </Link>
             <SignedIn>
-              <UserButton afterSignOutUrl="/#/" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden ring-2 ring-gray-700 dark:ring-gray-600 hover:ring-pink-500 transition-all shadow-md hover:shadow-lg">
+                <UserButton 
+                  afterSignOutUrl="/#/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-10 h-10",
+                      userButtonTrigger: "focus:shadow-none"
+                    }
+                  }}
+                />
+              </div>
             </SignedIn>
             <SignedOut>
               <a href="/#/auth/signin" className="btn-primary">Sign In</a>

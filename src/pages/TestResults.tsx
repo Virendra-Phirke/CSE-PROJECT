@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useTestQuery, useResultsQuery } from '../hooks/quizQueries';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
@@ -10,11 +10,17 @@ import { Skeleton, CardSkeleton } from '../components/Skeleton';
 
 function TestResults() {
   const { testId } = useParams<{ testId: string }>();
+  const [searchParams] = useSearchParams();
   const { user } = useUser();
   const testQuery = useTestQuery(testId);
   const resultsQuery = useResultsQuery(testQuery.data ? [testQuery.data] : undefined);
   const loading = testQuery.isLoading || resultsQuery.isLoading;
   const [userUUID, setUserUUID] = useState<string>('');
+  
+  // Check if viewing as teacher for a specific student
+  const studentIdParam = searchParams.get('student');
+  const userRole = canonicalizeRole(user?.unsafeMetadata?.role as string | undefined);
+  const isTeacherView = userRole === 'teacher' && studentIdParam;
 
   // Generate UUID for current user to find their result
   useEffect(() => {
@@ -29,7 +35,10 @@ function TestResults() {
 
   const test: LegacyTest | undefined = testQuery.data;
   const testResults: LegacyTestResult[] = resultsQuery.data?.filter(r => r.testId === testId) || [];
-  const myResult: LegacyTestResult | undefined = testResults.find((r: LegacyTestResult) => r.studentId === userUUID);
+  
+  // Find the result to display - either the specified student or current user
+  const targetStudentId = isTeacherView ? studentIdParam : userUUID;
+  const myResult: LegacyTestResult | undefined = testResults.find((r: LegacyTestResult) => r.studentId === targetStudentId);
 
   if (loading) {
     return (
@@ -100,13 +109,17 @@ function TestResults() {
         <div className="text-center rounded-3xl border border-white/15 bg-white/70 dark:bg-white/5 backdrop-blur-2xl shadow-glow p-8 max-w-md">
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Results Not Found</h1>
-          <p className="text-gray-600 dark:text-gray-400">Unable to find test results.</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            {isTeacherView 
+              ? 'Unable to find results for this student.' 
+              : 'Unable to find your test results.'}
+          </p>
           <Link
-            to={canonicalizeRole(user?.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
+            to={isTeacherView ? `/teacher/test/${testId}` : (userRole === 'teacher' ? '/teacher' : '/student')}
             className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold hover:brightness-110 transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
-            Back to Dashboard
+            {isTeacherView ? 'Back to Test Details' : 'Back to Dashboard'}
           </Link>
         </div>
       </div>
@@ -141,14 +154,16 @@ function TestResults() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
             <Link
-              to={canonicalizeRole(user?.unsafeMetadata?.role as string | undefined) === 'teacher' ? '/teacher' : '/student'}
+              to={isTeacherView ? `/teacher/test/${testId}` : (userRole === 'teacher' ? '/teacher' : '/student')}
               className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mr-4 transition-colors"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Dashboard
+              {isTeacherView ? 'Back to Test Details' : 'Back to Dashboard'}
             </Link>
             <div>
-              <h1 className="text-2xl font-bold gradient-text">Test Results</h1>
+              <h1 className="text-2xl font-bold gradient-text">
+                {isTeacherView ? `${myResult.studentName}'s Results` : 'Test Results'}
+              </h1>
               <p className="text-gray-600 dark:text-gray-400">{test.title}</p>
             </div>
           </div>
@@ -156,6 +171,21 @@ function TestResults() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Teacher View Badge */}
+        {isTeacherView && (
+          <div className="mb-6 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800">
+              <Trophy className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-blue-900 dark:text-blue-100">Teacher View</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                You are viewing {myResult.studentName}'s detailed test submission
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Score Summary */}
         <div className="rounded-3xl border border-white/15 bg-gradient-to-br from-pink-50/80 to-purple-50/80 dark:from-pink-900/20 dark:to-purple-900/20 backdrop-blur-2xl shadow-glow p-8 md:p-12 mb-8">
           <div className="text-center">
@@ -170,7 +200,8 @@ function TestResults() {
               )}
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">
-              Your Score: <span className={`${getScoreColor(myResult.score)} bg-gradient-to-r bg-clip-text text-transparent ${
+              {isTeacherView ? 'Student Score: ' : 'Your Score: '}
+              <span className={`${getScoreColor(myResult.score)} bg-gradient-to-r bg-clip-text text-transparent ${
                 myResult.score >= 90 ? 'from-green-500 to-emerald-600' :
                 myResult.score >= 70 ? 'from-blue-500 to-cyan-600' :
                 myResult.score >= 50 ? 'from-yellow-500 to-orange-600' :
@@ -194,7 +225,7 @@ function TestResults() {
             <div className="rounded-2xl border border-white/25 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 text-center transform hover:scale-105 transition-transform">
               <Trophy className="h-10 w-10 text-purple-500 mx-auto mb-3" />
               <p className="text-3xl font-bold text-gray-900 dark:text-white">#{myRank}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Your Rank</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{isTeacherView ? 'Student Rank' : 'Your Rank'}</p>
             </div>
 
             <div className="rounded-2xl border border-white/25 bg-white/60 dark:bg-white/5 backdrop-blur-xl p-6 text-center transform hover:scale-105 transition-transform">
