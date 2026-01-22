@@ -11,7 +11,9 @@ import {
   PieChart,
   Clock,
   Award,
-  Target
+  Target,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
@@ -24,6 +26,8 @@ function AnalyticsPage() {
   const [userUUID, setUserUUID] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | 'all'>('all');
+  const [testPerformancePage, setTestPerformancePage] = useState(1);
+  const testsPerPage = 5;
 
   useEffect(() => {
     const init = async () => {
@@ -122,6 +126,15 @@ function AnalyticsPage() {
       testPerformance
     };
   }, [filteredResults, myTests]);
+
+  // Paginated test performance
+  const paginatedTestPerformance = useMemo(() => {
+    const startIndex = (testPerformancePage - 1) * testsPerPage;
+    const endIndex = startIndex + testsPerPage;
+    return analytics.testPerformance.slice(startIndex, endIndex);
+  }, [analytics.testPerformance, testPerformancePage, testsPerPage]);
+
+  const totalTestPages = Math.ceil(analytics.testPerformance.length / testsPerPage);
 
   if (loading) {
     return (
@@ -298,14 +311,14 @@ function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-dark-border">
-                {analytics.testPerformance.length === 0 ? (
+                {paginatedTestPerformance.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-dark-text-secondary">
                       No test data available yet. Create tests and wait for students to attempt them.
                     </td>
                   </tr>
                 ) : (
-                  analytics.testPerformance.map((test) => (
+                  paginatedTestPerformance.map((test) => (
                     <tr key={test.id} className="hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="font-medium text-gray-900 dark:text-dark-text-primary">{test.title}</span>
@@ -338,6 +351,50 @@ function AnalyticsPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls for Test Performance */}
+          {analytics.testPerformance.length > testsPerPage && (
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-border flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-dark-text-secondary">
+                Showing {((testPerformancePage - 1) * testsPerPage) + 1} to {Math.min(testPerformancePage * testsPerPage, analytics.testPerformance.length)} of {analytics.testPerformance.length} tests
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTestPerformancePage(prev => Math.max(1, prev - 1))}
+                  disabled={testPerformancePage === 1}
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalTestPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setTestPerformancePage(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                        testPerformancePage === page
+                          ? 'bg-gray-800 dark:bg-gray-700 text-white border border-gray-600'
+                          : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setTestPerformancePage(prev => Math.min(totalTestPages, prev + 1))}
+                  disabled={testPerformancePage === totalTestPages}
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

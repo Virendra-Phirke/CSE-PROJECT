@@ -201,7 +201,7 @@ function AppHeader() {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10 ${scrolled ? 'backdrop-blur-xl bg-black/60 shadow-lg shadow-black/40' : 'backdrop-blur-lg bg-black/40'} `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/" className="quizmaster-button relative text-3xl font-extrabold tracking-wider cursor-pointer">
+          <Link to="/" className="quizmaster-button relative text-2xl sm:text-3xl font-extrabold tracking-wider cursor-pointer">
             <span className="actual-text text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.6)' }}>&nbsp;QuizMaster&nbsp;</span>
             <span aria-hidden="true" className="hover-text absolute inset-0 overflow-hidden transition-all duration-500" style={{ 
               width: '0%', 
@@ -211,41 +211,44 @@ function AppHeader() {
             }}>&nbsp;QuizMaster&nbsp;</span>
           </Link>
         </div>
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+        <nav className="hidden lg:flex items-center gap-8 text-sm font-medium">
           <a href="/#home" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Home<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
           <a href="/#about" className="text-gray-300 hover:text-pink-400 transition-colors relative group">About<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
           <a href="/#features" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Features<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
           <a href="/#contact" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Contact<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
         </nav>
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <SignedIn>
             <Link 
               to={dashboardPath} 
-              className="group/button relative hidden sm:inline-flex items-center justify-center overflow-hidden rounded-md bg-gray-800/30 backdrop-blur-lg px-6 py-2 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-110 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
+              className="group/button relative inline-flex items-center justify-center overflow-hidden rounded-lg bg-gray-800/40 backdrop-blur-lg px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
             >
-              <span className="flex items-center gap-2 text-base">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="flex items-center gap-1.5 sm:gap-2">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Dashboard
+                <span className="hidden sm:inline">Dashboard</span>
               </span>
               <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]">
                 <div className="relative h-full w-10 bg-white/20"></div>
               </div>
             </Link>
-            <UserButton 
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  userButtonPopoverCard: 'bg-white shadow-xl',
-                  userButtonPopoverActionButton: 'hover:bg-gray-100',
-                  userButtonPopoverActionButtonText: 'text-gray-700',
-                  userButtonPopoverFooter: 'bg-white border-t border-gray-200',
-                  userPreviewMainIdentifier: 'text-gray-900',
-                  userPreviewSecondaryIdentifier: 'text-gray-600'
-                }
-              }}
-            />
+            <div className="flex items-center">
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    userButtonPopoverCard: 'bg-white shadow-xl',
+                    userButtonPopoverActionButton: 'hover:bg-gray-100',
+                    userButtonPopoverActionButtonText: 'text-gray-700',
+                    userButtonPopoverFooter: 'bg-white border-t border-gray-200',
+                    userPreviewMainIdentifier: 'text-gray-900',
+                    userPreviewSecondaryIdentifier: 'text-gray-600',
+                    userButtonAvatarBox: 'w-8 h-8 sm:w-10 sm:h-10'
+                  }
+                }}
+              />
+            </div>
           </SignedIn>
           <SignedOut>
             <Link 

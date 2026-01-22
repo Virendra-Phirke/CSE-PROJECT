@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { useTestQuery, useResultsQuery } from '../hooks/quizQueries';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
@@ -11,6 +11,7 @@ import { Skeleton, CardSkeleton } from '../components/Skeleton';
 function TestResults() {
   const { testId } = useParams<{ testId: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { user } = useUser();
   const testQuery = useTestQuery(testId);
   const resultsQuery = useResultsQuery(testQuery.data ? [testQuery.data] : undefined);
@@ -114,13 +115,22 @@ function TestResults() {
               ? 'Unable to find results for this student.' 
               : 'Unable to find your test results.'}
           </p>
-          <Link
-            to={isTeacherView ? `/teacher/test/${testId}` : (userRole === 'teacher' ? '/teacher' : '/student')}
-            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold hover:brightness-110 transition-all"
+          <button
+            onClick={() => {
+              console.log('Error back button clicked:', { userRole, testId });
+              if (userRole === 'teacher') {
+                console.log('Navigating to:', `/teacher/test/${testId}`);
+                window.location.hash = `/teacher/test/${testId}`;
+              } else {
+                console.log('Navigating to student dashboard');
+                window.location.hash = '/student';
+              }
+            }}
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold hover:brightness-110 transition-all cursor-pointer"
           >
             <ArrowLeft className="h-5 w-5" />
-            {isTeacherView ? 'Back to Test Details' : 'Back to Dashboard'}
-          </Link>
+            {userRole === 'teacher' ? 'Back to Test Details' : 'Back to Dashboard'}
+          </button>
         </div>
       </div>
     );
@@ -153,13 +163,22 @@ function TestResults() {
       <div className="backdrop-blur-xl bg-white/70 dark:bg-black/40 shadow-sm border-b border-white/20 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-4">
-            <Link
-              to={isTeacherView ? `/teacher/test/${testId}` : (userRole === 'teacher' ? '/teacher' : '/student')}
-              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mr-4 transition-colors"
+            <button
+              onClick={() => {
+                console.log('Back button clicked:', { userRole, testId });
+                if (userRole === 'teacher') {
+                  console.log('Navigating to:', `/teacher/test/${testId}`);
+                  window.location.hash = `/teacher/test/${testId}`;
+                } else {
+                  console.log('Navigating to student dashboard');
+                  window.location.hash = '/student';
+                }
+              }}
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mr-4 transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              {isTeacherView ? 'Back to Test Details' : 'Back to Dashboard'}
-            </Link>
+              {userRole === 'teacher' ? 'Back to Test Details' : 'Back to Dashboard'}
+            </button>
             <div>
               <h1 className="text-2xl font-bold gradient-text">
                 {isTeacherView ? `${myResult.studentName}'s Results` : 'Test Results'}

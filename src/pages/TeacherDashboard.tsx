@@ -17,7 +17,10 @@ import {
   Share2, 
   Copy,
   CheckCircle,
-  Home
+  Home,
+  ChevronLeft,
+  ChevronRight,
+  Search
 } from 'lucide-react';
 import { getCachedUUIDFromClerkId } from '../lib/clerkUtils';
 import { Skeleton, CardSkeleton } from '../components/Skeleton';
@@ -35,6 +38,11 @@ function TeacherDashboard() {
   const loading = testsQuery.isLoading || resultsQuery.isLoading;
   const [userUUID, setUserUUID] = useState<string>('');
   const [copiedTestId, setCopiedTestId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [resultsPage, setResultsPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const testsPerPage = 5;
+  const resultsPerPage = 5;
   const { addToast, ToastContainer } = useToast();
 
   // Generate UUID for current user to filter tests
@@ -49,6 +57,15 @@ function TeacherDashboard() {
   }, [user?.id]);
 
   const myTests = legacyTests.filter((test: LegacyTest) => test.createdBy === userUUID);
+  
+  // Filter tests based on search query
+  const filteredTests = myTests.filter((test: LegacyTest) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return test.title.toLowerCase().includes(query) || 
+           test.description.toLowerCase().includes(query);
+  });
+  
   const myResults = legacyResults.filter((result: LegacyTestResult) => 
     myTests.some((test: LegacyTest) => test.id === result.testId)
   );
@@ -293,20 +310,36 @@ function TeacherDashboard() {
         {/* My Tests */}
         <div className="card">
           <div className="p-6 border-b border-gray-200 dark:border-dark-border">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text-primary">My Tests</h2>
-              <Link
-                to="/teacher/create-test"
-                className="btn-primary flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Test
-              </Link>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                {/* Search Bar */}
+                <div className="relative flex-1 sm:flex-initial">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search tests..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // Reset to first page when searching
+                    }}
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg text-gray-900 dark:text-dark-text-primary placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  />
+                </div>
+                <Link
+                  to="/teacher/create-test"
+                  className="btn-primary flex items-center justify-center whitespace-nowrap"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Test
+                </Link>
+              </div>
             </div>
           </div>
           
           <div className="p-6">
-            {myTests.length === 0 ? (
+            {filteredTests.length === 0 ? (
               <div className="flex items-center justify-center min-h-[500px]">
                 <div className="text-center max-w-md mx-auto">
                   <div className="mb-8 relative">
@@ -315,8 +348,12 @@ function TeacherDashboard() {
                     </div>
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-br from-pink-500/20 to-purple-600/20 rounded-3xl blur-2xl -z-10"></div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">No tests created yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">Create your first test to get started with online assessments.</p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {searchQuery ? 'No tests found' : 'No tests created yet'}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
+                    {searchQuery ? 'Try a different search term or clear the search to see all tests.' : 'Create your first test to get started with online assessments.'}
+                  </p>
                   <Link
                     to="/teacher/create-test"
                     className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-semibold text-base hover:shadow-lg hover:shadow-purple-500/50 hover:brightness-110 transition-all transform hover:scale-105"
@@ -328,7 +365,7 @@ function TeacherDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {myTests.map((test: LegacyTest) => {
+                {filteredTests.slice((currentPage - 1) * testsPerPage, currentPage * testsPerPage).map((test: LegacyTest) => {
                   const testResults = myResults.filter((result: LegacyTestResult) => result.testId === test.id);
                   const averageScore = testResults.length > 0 
                     ? testResults.reduce((sum: number, result: LegacyTestResult) => sum + result.score, 0) / testResults.length 
@@ -419,6 +456,50 @@ function TeacherDashboard() {
                 })}
               </div>
             )}
+            
+            {/* Pagination Controls */}
+            {filteredTests.length > testsPerPage && (
+              <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-dark-border pt-4">
+                <div className="text-sm text-gray-600 dark:text-dark-text-secondary">
+                  Showing {((currentPage - 1) * testsPerPage) + 1} to {Math.min(currentPage * testsPerPage, filteredTests.length)} of {filteredTests.length} tests
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </button>
+                  
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.ceil(filteredTests.length / testsPerPage) }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                          currentPage === page
+                            ? 'bg-gray-800 dark:bg-gray-700 text-white border border-gray-600'
+                            : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredTests.length / testsPerPage), prev + 1))}
+                    disabled={currentPage === Math.ceil(filteredTests.length / testsPerPage)}
+                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -431,7 +512,13 @@ function TeacherDashboard() {
             
             <div className="p-6">
               <div className="space-y-4">
-                {myResults.slice(-10).reverse().map((result: LegacyTestResult) => {
+                {myResults
+                  .slice()
+                  .sort((a: LegacyTestResult, b: LegacyTestResult) => 
+                    new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+                  )
+                  .slice((resultsPage - 1) * resultsPerPage, resultsPage * resultsPerPage)
+                  .map((result: LegacyTestResult) => {
                   const test = myTests.find((t: LegacyTest) => t.id === result.testId);
                   return (
                     <div key={result.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-dark-bg-tertiary rounded-lg">
@@ -451,6 +538,50 @@ function TeacherDashboard() {
                   );
                 })}
               </div>
+              
+              {/* Pagination Controls for Recent Results */}
+              {myResults.length > resultsPerPage && (
+                <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-dark-border pt-4">
+                  <div className="text-sm text-gray-600 dark:text-dark-text-secondary">
+                    Showing {((resultsPage - 1) * resultsPerPage) + 1} to {Math.min(resultsPage * resultsPerPage, myResults.length)} of {myResults.length} results
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setResultsPage(prev => Math.max(1, prev - 1))}
+                      disabled={resultsPage === 1}
+                      className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.ceil(myResults.length / resultsPerPage) }, (_, i) => i + 1).map(page => (
+                        <button
+                          key={page}
+                          onClick={() => setResultsPage(page)}
+                          className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                            resultsPage === page
+                              ? 'bg-gray-800 dark:bg-gray-700 text-white border border-gray-600'
+                              : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <button
+                      onClick={() => setResultsPage(prev => Math.min(Math.ceil(myResults.length / resultsPerPage), prev + 1))}
+                      disabled={resultsPage === Math.ceil(myResults.length / resultsPerPage)}
+                      className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

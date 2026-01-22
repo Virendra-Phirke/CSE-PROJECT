@@ -11,7 +11,9 @@ import {
   TrendingUp,
   TrendingDown,
   Filter,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useTest } from '../hooks/useTest';
 import { LegacyTest, LegacyTestResult } from '../contexts/TestContext';
@@ -36,6 +38,8 @@ function ManageStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'score' | 'attempts' | 'recent'>('recent');
   const [filterScore, setFilterScore] = useState<'all' | 'passing' | 'failing'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 10;
 
   useEffect(() => {
     const init = async () => {
@@ -126,6 +130,20 @@ function ManageStudentsPage() {
 
     return filtered;
   }, [studentStats, searchQuery, sortBy, filterScore]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy, filterScore]);
+
+  // Paginated students
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * studentsPerPage;
+    const endIndex = startIndex + studentsPerPage;
+    return filteredStudents.slice(startIndex, endIndex);
+  }, [filteredStudents, currentPage, studentsPerPage]);
+
+  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
   const exportToCSV = () => {
     const headers = ['Student ID', 'Name', 'Total Attempts', 'Average Score', 'Best Score', 'Tests Completed', 'Last Attempt'];
@@ -299,7 +317,7 @@ function ManageStudentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-dark-border">
-                {filteredStudents.length === 0 ? (
+                {paginatedStudents.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <Users className="h-12 w-12 text-gray-300 dark:text-dark-text-tertiary mx-auto mb-4" />
@@ -309,7 +327,7 @@ function ManageStudentsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredStudents.map((student) => (
+                  paginatedStudents.map((student) => (
                     <tr key={student.studentId} className="hover:bg-gray-50 dark:hover:bg-dark-bg-tertiary">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -368,6 +386,50 @@ function ManageStudentsPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          {filteredStudents.length > studentsPerPage && (
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-border flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-dark-text-secondary">
+                Showing {((currentPage - 1) * studentsPerPage) + 1} to {Math.min(currentPage * studentsPerPage, filteredStudents.length)} of {filteredStudents.length} students
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                        currentPage === page
+                          ? 'bg-gray-800 dark:bg-gray-700 text-white border border-gray-600'
+                          : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-dark-bg-tertiary border border-gray-300 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
