@@ -187,7 +187,7 @@ function TeacherDashboard() {
             <SignedIn>
               <div className="flex items-center justify-center w-10 h-10 rounded-lg overflow-hidden ring-2 ring-gray-700 dark:ring-gray-600 hover:ring-pink-500 transition-all shadow-md hover:shadow-lg">
                 <UserButton 
-                  afterSignOutUrl="/#/"
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-10 h-10",

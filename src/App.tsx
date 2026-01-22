@@ -201,7 +201,7 @@ function AppHeader() {
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10 ${scrolled ? 'backdrop-blur-xl bg-black/60 shadow-lg shadow-black/40' : 'backdrop-blur-lg bg-black/40'} `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
-          <a href="/" className="quizmaster-button relative text-3xl font-extrabold tracking-wider cursor-pointer">
+          <Link to="/" className="quizmaster-button relative text-3xl font-extrabold tracking-wider cursor-pointer">
             <span className="actual-text text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.6)' }}>&nbsp;QuizMaster&nbsp;</span>
             <span aria-hidden="true" className="hover-text absolute inset-0 overflow-hidden transition-all duration-500" style={{ 
               width: '0%', 
@@ -209,7 +209,7 @@ function AppHeader() {
               WebkitTextStroke: '1px #FF3737',
               borderRight: '6px solid #FF3737'
             }}>&nbsp;QuizMaster&nbsp;</span>
-          </a>
+          </Link>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           <a href="/#home" className="text-gray-300 hover:text-pink-400 transition-colors relative group">Home<span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-pink-500 to-purple-600 transition-all group-hover:w-full"/></a>
@@ -233,30 +233,23 @@ function AppHeader() {
                 <div className="relative h-full w-10 bg-white/20"></div>
               </div>
             </Link>
-            <div className="flex items-center">
-              <UserButton 
-                afterSignOutUrl="/#/" 
-                appearance={{ 
-                  elements: { 
-                    userButtonBox: 'flex items-center',
-                    userButtonTrigger: 'focus:shadow-none hover:opacity-80 transition-opacity',
-                    avatarBox: 'w-10 h-10',
-                    userButtonPopoverCard: 'bg-slate-800 border border-slate-700 shadow-2xl',
-                    userButtonPopoverActions: 'bg-slate-800',
-                    userButtonPopoverActionButton: 'text-gray-200 hover:bg-slate-700 transition-colors',
-                    userButtonPopoverActionButtonText: 'text-gray-200',
-                    userButtonPopoverFooter: 'bg-slate-900 border-t border-slate-700',
-                    userPreview: 'bg-slate-800',
-                    userPreviewMainIdentifier: 'text-white font-semibold',
-                    userPreviewSecondaryIdentifier: 'text-gray-400'
-                  } 
-                }} 
-              />
-            </div>
+            <UserButton 
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  userButtonPopoverCard: 'bg-white shadow-xl',
+                  userButtonPopoverActionButton: 'hover:bg-gray-100',
+                  userButtonPopoverActionButtonText: 'text-gray-700',
+                  userButtonPopoverFooter: 'bg-white border-t border-gray-200',
+                  userPreviewMainIdentifier: 'text-gray-900',
+                  userPreviewSecondaryIdentifier: 'text-gray-600'
+                }
+              }}
+            />
           </SignedIn>
           <SignedOut>
-            <a 
-              href="/#/auth/signin" 
+            <Link 
+              to="/auth/signin" 
               className="relative cursor-pointer py-2 px-6 text-center inline-flex justify-center text-sm uppercase text-white rounded-lg transition-transform duration-300 ease-in-out group outline-offset-4 focus:outline focus:outline-2 focus:outline-white focus:outline-offset-4 overflow-hidden"
             >
               <span className="relative z-20">Sign In</span>
@@ -267,7 +260,7 @@ function AppHeader() {
               <span className="w-1/2 transition-all duration-300 block border-pink-400 absolute group-hover:h-[90%] h-[60%] rounded-tr-lg border-r-2 border-t-2 top-0 right-0"></span>
               <span className="w-1/2 transition-all duration-300 block border-pink-400 absolute h-[60%] group-hover:h-[90%] rounded-bl-lg border-l-2 border-b-2 left-0 bottom-0"></span>
               <span className="w-1/2 transition-all duration-300 block border-pink-400 absolute h-[20%] rounded-br-lg border-r-2 border-b-2 right-0 bottom-0"></span>
-            </a>
+            </Link>
           </SignedOut>
         </div>
       </div>
